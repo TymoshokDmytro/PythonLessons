@@ -2,7 +2,7 @@
 print('========== First task =============')
 # n = int(input('Enter range: '))
 n = 100
-lst = list(range(0, n+1))
+lst = list(range(n))
 for item in lst:
     if item % 2 == 0: print(item)
 
@@ -29,6 +29,7 @@ for i in range(1, 101):
     elif i % 5 == 0: print('Buzz')
     else: print(i)
 
+
 # ========== Fourth task =============
 print('========== Fourth task =============')
 def bank(deposit_sum, years, percent):
@@ -36,11 +37,11 @@ def bank(deposit_sum, years, percent):
     try:
         for year in range(1, years+1):
             result += result * (percent / 100)
-            print(year, ": ", round(result, 2))
-    except BaseException as e:
+    except Exception as e:
         print("Got an exception: ", e)
+        return None
+    return round(result, 2)
 
-    print("Final sum = ", round(result, 2))
-
-bank(100, 10, 5)
-
+res = bank(100, 10, 5)
+print("Final sum = ", res)
+bank(100, '10', 5)

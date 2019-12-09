@@ -29,8 +29,7 @@ for i in range(1, 101):
     elif i % 5 == 0: print('Buzz')
     else: print(i)
 
-
-# ========== Fourth task =============
+# =========== Fourth task =============
 print('========== Fourth task =============')
 def bank(deposit_sum, years, percent):
     result = deposit_sum

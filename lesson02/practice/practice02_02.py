@@ -1,5 +1,6 @@
 import traceback
 
+
 class Store:
 
     _overall_sold_items = 0
@@ -45,6 +46,7 @@ def printStores():
     print(store_2)
     print()
 
+
 try:
     store_1 = Store('1 store', 4)
     store_2 = Store('2 store', 2)
@@ -69,5 +71,6 @@ try:
     print('store 2 refund 1')
     store_2.refund(1)
     printStores()
-except:
+
+except Exception:
     print(traceback.format_exc())

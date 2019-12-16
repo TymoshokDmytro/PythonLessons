@@ -22,25 +22,25 @@ class ComplexNumber():
 
     def __add__(self, other):
         return ComplexNumber(
-            self.get_real() + other.get_real(),
-            self.get_img() + other.get_img()
+            self._real + other.get_real(),
+            self._img + other.get_img()
         )
 
     def __sub__(self, other):
         return ComplexNumber(
-            self.get_real() - other.get_real(),
-            self.get_img() - other.get_img()
+            self._real - other.get_real(),
+            self._img - other.get_img()
         )
 
     def __mul__(self, other):
         return ComplexNumber(
-            (self.get_real() * other.get_real()) - (self.get_img() * other.get_img()),
-            (self.get_img() * other.get_real()) + (self.get_real() * other.get_img())
+            (self._real * other.get_real()) - (self._img * other.get_img()),
+            (self._img * other.get_real()) + (self._real * other.get_img())
         )
 
     def __truediv__(self, other):
-        a = self.get_real()
-        b = self.get_img()
+        a = self._real
+        b = self._img
         c = other.get_real()
         d = other.get_img()
 

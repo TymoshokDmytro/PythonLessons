@@ -10,14 +10,17 @@ class Person(ABC):
         self._name = name
         self._bday = bday
 
-    def get_age(self):
         now = date.today()
         age = now.year - self._bday.year
         month = now.month - self._bday.month
         day = now.day - self._bday.day
         if any((month < 0, day <= 0)):
             age += 1
-        return age
+
+        self._age = age
+
+    def get_age(self):
+        return self._age
 
     @abstractmethod
     def get_info(self):
@@ -36,7 +39,7 @@ class Student(Person):
                f'bday={self._bday.strftime("%b %d %Y")}, ' \
                f'department={self._department}, ' \
                f'course={self._course}]' \
-               f'age={self.get_age()}'
+               f'age={self._age}'
 
 
 # Абитуриент
@@ -50,7 +53,7 @@ class Enrollee(Person):
         return f'Enrollee[name={self._name}, ' \
                f'bday={self._bday.strftime("%b %d %Y")}, ' \
                f'department={self._department}]' \
-               f'age={self.get_age()}'
+               f'age={self._age}'
 
 
 class Teacher(Person):
@@ -64,8 +67,8 @@ class Teacher(Person):
         return f'Teacher[name={self._name}, ' \
                f'bday={self._bday.strftime("%b %d %Y")}, ' \
                f'job={self._job}, ' \
-               f'workyears={self._workyears}, ' \ 
-               f'age={self.get_age()}'
+               f'workyears={self._workyears}, ' \
+               f'age={self._age}'
 
 
 t = Teacher('Teacher1', date(1967, 12, 15), 'PhD Philosopy', 3)
@@ -78,7 +81,7 @@ lst = [t, e, s]
 
 
 def getPersonsWithAgeOf(persons, age):
-    return [p for p in persons if p.age >= age]
+    return [p for p in persons if p.get_age() >= age]
 
 
 def printPersonsInfo(persons):
@@ -87,4 +90,7 @@ def printPersonsInfo(persons):
 
 
 printPersonsInfo(lst)
-printPersonsInfo(getPersonsWithAgeOf(lst, 15))
+print()
+# Enrollee wont be printed
+print('Print everyone who are > 18')
+printPersonsInfo(getPersonsWithAgeOf(lst, 18))

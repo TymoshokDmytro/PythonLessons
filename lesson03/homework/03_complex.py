@@ -70,4 +70,4 @@ cmplx_res = cmplx1 * cmplx2
 print(f'Multiplication: {cmplx_res}')
 
 cmplx_res = cmplx1 / cmplx2
-print(f'Deletion: {cmplx_res}')
+print(f'Division: {cmplx_res}')

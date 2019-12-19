@@ -12,34 +12,66 @@ from lesson04.practice.utils import *
 
 log = create_log('Exception_log.log')
 
+
 @unique
 class Role(Enum):
     ADMIN = 0
     USER = 1
 
-class UserDB:
+
+# updated for storing users in file with socialNetwork name
+class SocialNetworkDB:
 
     def __init__(self, filename):
         self._filename = filename
         if not self.get_all_users():
-            self.create_user({'root': User('root', '123', Role.ADMIN)})
+            self.create_user({'root': User('root', 'root', Role.ADMIN)})
 
     def get_db(self):
         return shelve.open(self._filename)
 
-    def create_user(self, **kwargs):
+    def _create_object(self, key, obj):
         with shelve.open(self._filename) as db:
-            users = db.get('users')
+            objects = db.get(key)
 
-            if not users:
-                db['users'] = kwargs
+            if not objects:
+                db[key] = obj
             else:
-                users.update(kwargs)
-                db['users'] = users
+                objects.update(obj)
+                db[key] = objects
+
+    def create_user(self, user):
+        self._create_object('users', user)
+
+    def create_post(self, post):
+        with shelve.open(self._filename) as db:
+            objects = db.get('posts')
+
+            if not objects:
+                db['posts'] = [post, ]
+            else:
+                objects.append(post)
+                db['posts'] = objects
 
     def get_all_users(self):
+        key = 'users'
         with shelve.open(self._filename) as db:
-            return dict(db['users'].items())
+            if key not in db.keys():
+                db[key] = {}
+
+            return dict(db[key])
+
+    def get_all_posts(self):
+        key = 'posts'
+        with shelve.open(self._filename) as db:
+            if key not in db.keys():
+                db[key] = []
+
+            return list(db[key])
+
+    def clear_all(self):
+        with shelve.open(self._filename) as db:
+            db.clear()
 
 
 class SocialNetworkException(Exception):
@@ -51,24 +83,15 @@ class SocialNetwork:
 
     def __init__(self, name):
         self._name = name
-        self._user_db = UserDB(name)
-        self._users = {
-            # пароль такой для прототы тестов
-            # при регистрации нового пользователя пароль проверяется на валидность
-            'root': User('root', '123', Role.ADMIN)
-        }
-        self._users.update(self._user_db.get_all_users())
-        self._posts = [
-            Post(0, "First root"),
-            Post(0, "Second root"),
-            Post(0, "First root"),
-            Post(1, "First user"),
-            Post(1, "Second user"),
-            Post(1, "First user"),
-
-        ]
+        # retrieving users from file bd
+        self._db = SocialNetworkDB(name)
+        self._users = self._db.get_all_users()
+        self._posts = self._db.get_all_posts()
         self._current_user = None
         self._current_role = None
+
+    def get_name(self):
+        return self._name
 
     def set_current_user(self, user):
         self._current_user = user
@@ -81,23 +104,20 @@ class SocialNetwork:
     def clear_current_user(self):
         self._current_user = None
         self._current_role = None
-        print('Current user is None')
 
     def add_user(self, user):
+        self._db.create_user({user.get_login(): user})
         self._users.update({user.get_login(): user})
 
-    def remove_user(self, id):
-        for post in self._posts:
-            if post.get_user_id() == id:
-                self._posts.remove(post)
-        user = self.get_user_by_id(id)
-        self._users.pop(user)
-
+    # TODO
+    # смущает использование декораторов в классе
+    # в таком варианте работает, но как то не по питоновски, не по феншуйному (
     def check_user_authorized(func):
         def wrapper(self, *args):
             if self._current_user is None:
                 raise SocialNetworkException('User is not authorized')
             return func(self, *args)
+
         return wrapper
 
     def check_admin(func):
@@ -105,15 +125,15 @@ class SocialNetwork:
             if self._current_role is not Role.ADMIN:
                 raise SocialNetworkException("This function is allowed only for ADMINS")
             return func(self, *args)
+
         return wrapper
 
     @check_user_authorized
     def create_post(self, message):
+        # переменная _posts оставленна как локальная для ускорения работы
+        # чтобы каждый раз не гонять в бд за постами
+        self._db.create_post(Post(self._current_user.get_id(), message))
         self._posts.append(Post(self._current_user.get_id(), message))
-
-    def remove_post(self, message):
-        #TODO
-        pass
 
     def is_login_present(self, login):
         return login in self._users.keys()
@@ -174,15 +194,16 @@ class SocialNetwork:
 
     def _show_posts(self, posts):
         user_id_map = self.get_user_id_map()
+        if not posts:
+            print('No posts yet here :(')
+            return
         if self._current_role == Role.ADMIN:
             for post in posts:
-                print(f'Post_id: {post.get_id()}; Author: {user_id_map[post.get_user_id()]}; Message: {post.get_message()}; Created: {post.get_create_date()}')
+                print(
+                    f'[id={post.get_id()}][{post.get_create_date()}][{user_id_map[post.get_user_id()]}]: {post.get_message()}')
         else:
-            if not posts:
-                print('No posts yet here :(')
-                return
             for post in posts:
-                print(f'Author: {user_id_map[post.get_user_id()]}; Message: {post.get_message()};')
+                print(f'[{post.get_create_date()}][{user_id_map[post.get_user_id()]}]: {post.get_message()}')
 
     def show_all_posts(self):
         self._show_posts(self._posts)
@@ -195,17 +216,27 @@ class SocialNetwork:
     @check_admin
     def show_all_users(self):
         for user in self._users.values():
-            print(f'User_id: {user.get_id()}; Login(name): {user.get_login()}; Role: {user.get_role()}; Created: {user.get_registration_date()}')
+            print(
+                f'User_id: {user.get_id()}; Login(name): {user.get_login()}; Role: {user.get_role()}; Created: {user.get_registration_date()}')
+
+    @check_admin
+    def clear_all_db(self):
+        self._db.clear_all()
+        self._posts = []
+        self._users = {'root': User('root', 'root', Role.ADMIN)}
 
     @check_admin
     def show_user_details_by_name(self, name):
         user = self.get_user_by_name(name)
-        print(f'User_id: {user.get_id()}; Login(name): {user.get_login()}; Role: {user.get_role()}; Created: {user.get_registration_date()}')
+        print(
+            f'User_id: {user.get_id()}; Login(name): {user.get_login()}; Role: {user.get_role()}; Created: {user.get_registration_date()}')
 
     @check_admin
     def show_user_details_by_id(self, user_id):
         user = self.get_user_by_id(user_id)
-        print(f'User_id: {user.get_id()}; Login(name): {user.get_login()}; Role: {user.get_role()}; Created: {user.get_registration_date()}')
+        print(
+            f'User_id: {user.get_id()}; Login(name): {user.get_login()}; Role: {user.get_role()}; Created: {user.get_registration_date()}')
+
 
 class Registration:
 
@@ -246,7 +277,6 @@ class Authorization(Registration):
 
 
 class User:
-
     _id = 0
 
     def __init__(self, login, password, role):
@@ -279,7 +309,6 @@ class User:
 
 
 class Post:
-
     _id = 0
 
     def __init__(self, user_id, message):
@@ -315,8 +344,13 @@ def get_input(promt):
     except ValueError:
         raise SocialNetworkException("Option must be of integer type")
 
+
 print()
 print('###### Welcome to the simple social network ######')
+print('### Service info for debug ###')
+print(f'Total users = {len(sn.get_users())} | {list(sn.get_users().keys())}')
+print(f'Total posts = {len(sn.get_posts())}')
+print('password for root = root')
 try:
     # unauthorized block
     while True:
@@ -347,11 +381,11 @@ try:
                             print("4 = Show user details by name (ADMIN)")
                             print("5 = Show user details by id (ADMIN)")
                             print("6 = Show user posts by name (ADMIN)")
-                            print("7 = Log out ")
+                            print("7 = Clear all db (ADMIN)")
+                            print("8 = Log out ")
                             try:
                                 opt = get_input("Choose option: ")
                                 if opt == 1:
-                                    print('All posts: ')
                                     sn.show_all_posts()
                                 elif opt == 2:
                                     message = input("Enter message:")
@@ -369,6 +403,16 @@ try:
                                     user_name = input("Enter user name: ")
                                     sn.show_user_posts(user_name)
                                 elif opt == 7:
+                                    print('This will clear all the db users and leave only the root admin.')
+                                    print('')
+                                    answer = input("Type 'yes' to proceed or something else for abort: ")
+                                    if answer == 'yes':
+                                        sn.clear_all_db()
+                                        print(f'Database "{sn.get_name()} cleared!"')
+                                        continue
+                                    else:
+                                        print('Aborted')
+                                elif opt == 8:
                                     sn.clear_current_user()
                                     print('Logged out')
                                     break
@@ -403,4 +447,3 @@ except Exception:
     traceback.print_exc()
 
 print('##### BYE #####')
-

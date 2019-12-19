@@ -3,3 +3,6 @@ venv
 __pycache__/
 *.log
 socialNetwork
+*.bak
+*.dat
+*.dir

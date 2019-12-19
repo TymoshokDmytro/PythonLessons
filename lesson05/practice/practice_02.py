@@ -11,6 +11,7 @@ def thread_decorator(name, daemon):
             print(f'Thread {name} started on {args[0]}')
             start_time = time()
             t.start()
+            t.join()
             print(f'Thread {name} ended in {round(time() - start_time, 5)}')
         return wrapper
     return actual_decorator
@@ -24,6 +25,7 @@ def get_web_file(url, i):
 
 urls = ['http://meme.vandorp.biz/fap.jpg',
         'http://meme.vandorp.biz/DoubleFacePalm.jpg',
+        'http://www.eso.org/~wfreudli/pressreleases/iron/images/high_resolution.jpg',
         'http://meme.vandorp.biz/?#grin.jpg',
         'http://meme.vandorp.biz/?#americans.jpg',
         'http://meme.vandorp.biz/?#anoyingfacebook.jpg',

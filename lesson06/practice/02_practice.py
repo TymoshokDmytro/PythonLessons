@@ -1,29 +1,20 @@
-class ArrayList:
+class ModifiedDict:
 
     # pop, append, insert, remove, clear
-    def __init__(self, *lst):
-        self._array = [*lst]
-        self._size = len(lst)
+    def __init__(self, **dct):
+        self._dct = {**dct}
 
-    def _check_range(self, index):
-        if index < 0 or index > self._size:
-            raise IndexError
+    def __getitem__(self, key):
+        return self._dct[key]
 
-    def __getitem__(self, index):
-        self._check_range(index)
-        return self._array[index]
+    def __setitem__(self, key, value):
+        self._dct[key] = value
 
-    def __setitem__(self, index, value):
-        self._check_range(index)
-        self._array[index] = value
-
+    # TODO
     def append(self, value):
-        self._size += 1
         self._array = self._array + [value, ]
 
     def pop(self):
-        if self._size == 0:
-            raise IndexError('No item to pop in list')
         result = self._array[self._size - 1]
         del self._array[self._size - 1]
         self._size -= 1
@@ -59,20 +50,3 @@ class ArrayList:
 
     def __str__(self):
         return str(self._array)
-
-
-a = ArrayList(9, 10, 11)
-
-a.append(12)
-a.append(13)
-a.append(14)
-print(a)
-a.insert(3, 23)
-print(a)
-a.remove(1)
-print(a)
-print(a + 4)
-print(a)
-a.clear()
-print(a)
-

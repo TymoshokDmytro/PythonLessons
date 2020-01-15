@@ -11,9 +11,20 @@ class Role(Enum):
     ADMIN = 2
 
 
+def print_row(*args, offset=15):
+    print(("|   %-" + str(offset) + "s") * (len(args)) % args)
+
+
+def fill_row(char, length):
+    print(char * length)
+
+
 def showResult(result):
+    print()
+    print_row(*db_columns)
+    fill_row('-', 110)
     for res in result:
-        print(res)
+        print_row(*res)
 
 
 class StudentsManagerException(Exception):
@@ -72,29 +83,26 @@ class StudentsManager:
     @_check_admin
     def update_student(self, id, field, value):
         with self._db_manager as db:
-            db.execute(Queries.sql_update_student.format(field), (value, id, ))
+            db.execute(Queries.sql_update_student.format(field), (value, id,))
 
     @_check_admin
     def remove_student(self, id):
         with self._db_manager as db:
-            db.execute(Queries.sql_remove_student, (id, ))
+            db.execute(Queries.sql_remove_student, (id,))
 
 
-
-# sm = StudentsManager('students.sqlite', Role.ADMIN)
-# students = sm.get_all_students()
-# showResult(students)
-# sm.remove_student(10)
-# print()
-# students = sm.get_all_students()
-# showResult(students)
-
-
-def get_input(promt):
+def get_input(promt, v_type='int'):
     try:
+        if v_type == 'float':
+            return float(input(promt))
         return int(input(promt))
     except ValueError:
-        raise StudentsManagerException("Option must be of integer type")
+        raise StudentsManagerException("Option must be of {} type".format(v_type))
+
+
+def raise_not_admin_func():
+    raise StudentsManagerException('This function is only for ADMINS')
+
 
 print()
 print('###### Welcome to the Students Manager ######')
@@ -111,14 +119,14 @@ while True:
         # Authorization block
         role = None
         if opt == 1:
-           role = Role.USER
+            role = Role.USER
         if opt == 2:
             role = Role.ADMIN
         if opt == 3:
             break
         sm = StudentsManager('students.sqlite', role)
         db_columns = sm.get_db_columns()
-        while(True):
+        while (True):
             print()
             print("Welcome ", role.name)
             print("Please choose option: ")
@@ -132,9 +140,9 @@ while True:
             print("8 - Remove student (ADMIN ONLY)")
             print("9 - Exit")
             try:
-                opt = get_input('Choose option:')
+                opt = get_input('Choose option: ')
                 if opt == 1:
-                    showResult(sm.get_all_students()[0])
+                    showResult(sm.get_all_students())
                 if opt == 2:
                     id = get_input('Enter student id: ')
                     showResult(sm.get_student_by_id(id))
@@ -142,11 +150,48 @@ while True:
                     fullname = input('Enter student fullname: ')
                     showResult(sm.get_student_by_fullname(fullname))
                 if opt == 4:
-                    stud_ticket = input('Enter student id: ')
+                    stud_ticket = input('Enter student ticket num: ')
                     showResult(sm.get_student_by_stud_ticket(stud_ticket))
                 if opt == 5:
-                    stud_ticket = get_input('Enter student id: ')
-                    showResult(sm.get_student_by_stud_ticket(stud_ticket))
+                    mark = get_input('Enter the mark to see the students with higher marks: ', 'float')
+                    showResult(sm.get_students_by_mark_gt_than(mark))
+                if opt == 6:
+                    if role is not Role.ADMIN:
+                        raise_not_admin_func()
+                    print("Enter values for new student")
+                    fullname = input('Enter fullname: ')
+                    department = input('Enter department: ')
+                    group = input('Enter group: ')
+                    avg_mark = get_input('Enter avg_mark(example - 0.0): ', 'float')
+                    stud_ticket = input('Enter stud_ticket: ')
+                    sm.create_student(fullname, department, group, avg_mark, stud_ticket)
+                    print('Student', fullname, 'created.')
+                if opt == 7:
+                    if role is not Role.ADMIN:
+                        raise_not_admin_func()
+                    id = get_input("Enter student id to update: ")
+                    student = sm.get_student_by_id(id)
+                    if not student:
+                        raise StudentsManagerException('No student with such id')
+                    print("Available columns to update: ")
+                    for i, column in enumerate(db_columns):
+                        if i == 0: continue
+                        print(i, '-', column)
+                    field_num = get_input("Enter field number to update: ")
+                    if field_num > len(db_columns) or field_num == 0:
+                        raise StudentsManagerException('No such option in columns - ', field_num)
+                    field = db_columns[field_num]
+                    if field == 'avg_mark':
+                        value = get_input('New value for field "{}": '.format(field), 'float')
+                    else:
+                        value = input('New value for field "{}": '.format(field))
+                    sm.update_student(id, field, value)
+                    print("Student with id =", id, 'successfully updated')
+                if opt == 8:
+                    if role is not Role.ADMIN:
+                        raise_not_admin_func()
+                    id = get_input("Enter student id to remove: ")
+                    sm.remove_student(id)
                 if opt == 9:
                     break
             except StudentsManagerException as e:
@@ -157,6 +202,4 @@ while True:
         print("Error: ", e.args[0])
         continue
 
-
 print('##### BYE #####')
-

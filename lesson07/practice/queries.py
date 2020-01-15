@@ -7,6 +7,6 @@ class Queries:
 
     sql_create_student = 'insert into students (fullname, department, "group", avg_mark, stud_ticket) VALUES (?, ?, ?, ?, ?)'
 
-    sql_update_student = 'update students set {}=? where id = ?'
+    sql_update_student = 'update students set "{}" = ? where id = ?'
 
     sql_remove_student = 'delete from students where id=?'

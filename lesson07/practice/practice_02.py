@@ -76,9 +76,13 @@ class StudentsManager:
             return db.execute_with_result(Queries.sql_get_students_by_mark_gt_than, params=(mark,))
 
     @_check_admin
-    def create_student(self, fullname, department, group, avg_mark, stud_ticket):
+    def create_student(self, fullname, department, group, str_marks, stud_ticket):
         with self._db_manager as db:
-            db.execute(Queries.sql_create_student, (fullname, department, group, avg_mark, stud_ticket))
+            marks_eval = eval(str_marks)
+            db.execute(Queries.sql_create_student, (fullname, department, group, stud_ticket))
+            id = db.execute_with_result(Queries.sql_get_max_student_id, result_type=ResultType.FETCH_ONE)[0]
+            marks = [(id, v) for v in marks_eval]
+            db.execute_many(Queries.sql_insert_mark, marks)
 
     @_check_admin
     def update_student(self, id, field, value):
@@ -86,9 +90,17 @@ class StudentsManager:
             db.execute(Queries.sql_update_student.format(field), (value, id,))
 
     @_check_admin
+    def rewrite_marks(self, id, str_marks):
+        with self._db_manager as db:
+            marks = [(id, v) for v in eval(str_marks)]
+            db.execute(Queries.sql_remove_marks_by_id, (id,))
+            db.execute_many(Queries.sql_insert_mark, marks)
+
+    @_check_admin
     def remove_student(self, id):
         with self._db_manager as db:
             db.execute(Queries.sql_remove_student, (id,))
+            db.execute(Queries.sql_remove_marks_by_id, (id,))
 
 
 def get_input(promt, v_type='int'):
@@ -137,8 +149,9 @@ while True:
             print("5 - Show all with avg_marks >= ")
             print("6 - Create student (ADMIN ONLY)")
             print("7 - Update student (ADMIN ONLY)")
-            print("8 - Remove student (ADMIN ONLY)")
-            print("9 - Exit")
+            print("8 - Rewrite marks by id (ADMIN ONLY)")
+            print("9 - Remove student (ADMIN ONLY)")
+            print("10 - Exit")
             try:
                 opt = get_input('Choose option: ')
                 if opt == 1:
@@ -162,7 +175,7 @@ while True:
                     fullname = input('Enter fullname: ')
                     department = input('Enter department: ')
                     group = input('Enter group: ')
-                    avg_mark = get_input('Enter avg_mark(example - 0.0): ', 'float')
+                    avg_mark = input('Enter marks as string with comas(3.0, 4.15, 5.0): ')
                     stud_ticket = input('Enter stud_ticket: ')
                     sm.create_student(fullname, department, group, avg_mark, stud_ticket)
                     print('Student', fullname, 'created.')
@@ -190,9 +203,15 @@ while True:
                 if opt == 8:
                     if role is not Role.ADMIN:
                         raise_not_admin_func()
+                    id = get_input("Enter student id to rewrite_marks: ")
+                    str_marks = input('Enter marks as string with comas(3.0, 4.15, 5.0): ')
+                    sm.rewrite_marks(id, str_marks)
+                if opt == 9:
+                    if role is not Role.ADMIN:
+                        raise_not_admin_func()
                     id = get_input("Enter student id to remove: ")
                     sm.remove_student(id)
-                if opt == 9:
+                if opt == 10:
                     break
             except StudentsManagerException as e:
                 print("Error: ", e.args[0])

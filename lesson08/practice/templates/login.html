@@ -7,14 +7,27 @@
     <title>Title</title>
 </head>
 <body>
-<div class="container p-5" >
+
+
+
+<div class="container p-5 " style="margin: 0 auto;width:30%">
+    <!-- ERROR MESSAGES SECTION -->
+    {% with errors = get_flashed_messages(category_filter=["errors"]) %}
+    {% if errors %}
+    {%- for msg in errors %}
+    <div class="alert alert-danger" role="alert">
+        {{ msg }}
+    </div>
+    {% endfor -%}
+    {% endif %}
+    {% endwith %}
+
     <!-- Content here -->
-    <p class="text-danger">{{ error_message }}</p>
-    <form  action="/login" method="POST" class="form-horizontal">
+    <form  action="/login" method="POST" class="form-horizontal" >
 
         <div class="input-group mb-3">
             <div class="input-group-prepend">
-                <span class="input-group-text" id="basic-addon1">@</span>
+                <span class="input-group-text" id="basic-addon1">Username</span>
             </div>
             <input type="text" class="form-control" name="login" placeholder="Username" aria-label="Username"
                    aria-describedby="basic-addon1">
@@ -22,12 +35,12 @@
         </div>
         <div class="input-group mb-3">
             <div class="input-group-prepend">
-                <span class="input-group-text" id="basic-addon2">@</span>
+                <span class="input-group-text" id="basic-addon2">Password</span>
             </div>
-            <input type="text" class="form-control" name="password" placeholder="Password" aria-label="Username"
+            <input type="password" class="form-control" name="password" placeholder="Password" aria-label="Username"
                    aria-describedby="basic-addon1">
         </div>
-        <input type="submit" class="btn btn-primary" value="Submit"/>
+        <input type="submit" class="form-control btn btn-primary" value="Submit"/>
     </form>
 </div>
 </body>

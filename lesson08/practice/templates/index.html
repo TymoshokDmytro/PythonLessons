@@ -14,13 +14,32 @@
             <li class="nav-item">
                 <a class="nav-link" href="#">Link</a>
             </li>
+
+
         </ul>
+        <div class="text mr-sm-2" >Welcome, {{ session['user'] }}</div>
+        {% if session['role']=='ADMIN' %}
+        <button class="btn btn-outline-primary m-2 my-sm-0" onclick="location.href ='/admin'">Admin page</button>
+        {% endif %}
         <button class="btn btn-outline-primary my-2 my-sm-0" onclick="location.href ='/logout'">Logout</button>
     </div>
-</nav>
 
-Welcome {{ user }}
-<p>{{ error_message }}</p>
+</nav>
+<div class="container p-5 " style="margin: 0 auto;width:90%">
+<!-- ERROR MESSAGES SECTION -->
+    {% with errors = get_flashed_messages(category_filter=["errors"]) %}
+    {% if errors %}
+    {%- for msg in errors %}
+    <div class="alert alert-danger" role="alert">
+        {{ msg }}
+    </div>
+    {% endfor -%}
+    {% endif %}
+    {% endwith %}
+
+
+
+</div>
 
 </body>
 <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"

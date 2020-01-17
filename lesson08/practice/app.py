@@ -1,7 +1,7 @@
 import os
 from enum import unique, Enum
 
-from flask import Flask, render_template, redirect, abort, request
+from flask import Flask, render_template, redirect, abort, request, flash
 
 from lesson07.practice.DBManager import DBManager
 
@@ -139,6 +139,7 @@ def login():
     if 'error' in resp:
         return render_template('login.html', error_message=resp['error'])
     return redirect('/')
+
 
 @app.route("/admin")
 @only_for_roles([Role.ADMIN])

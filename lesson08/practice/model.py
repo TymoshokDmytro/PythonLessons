@@ -1,9 +1,11 @@
 import os
 from enum import unique, Enum
 
+from flask import url_for
 from werkzeug.utils import redirect
 
-from lesson07.practice.DBManager import DBManager
+from lesson07.practice.DBManager import DBManager, ResultType
+from lesson08.practice.queries import Query
 
 
 @unique
@@ -18,10 +20,46 @@ class OnlineStoreDBService:
             raise Exception('DB not found on this path: ' + db_path)
         self._db_manager = DBManager(db_path, autocommit)
 
+    def get_categories(self):
+        with self._db_manager as db:
+            return db.execute_with_result(Query.sql_get_category, result_type=ResultType.AS_DICT_LIST_WITH_COLUMNS_KEYS)
+
+    def get_all_goods(self):
+        with self._db_manager as db:
+            return db.execute_with_result(Query.sql_get_all_goods,
+                                          result_type=ResultType.AS_DICT_LIST_WITH_COLUMNS_KEYS)
+
+    def get_goods_by_id(self, goods_id):
+        with self._db_manager as db:
+            return db.execute_with_result(Query.sql_get_goods_by_id, params=(goods_id,),
+                                          result_type=ResultType.AS_DICT_LIST_WITH_COLUMNS_KEYS)
+
+    def get_goods_by_category_id(self, category_id):
+        with self._db_manager as db:
+            return db.execute_with_result(Query.sql_get_goods_by_category_id, params=(category_id,),
+                                          result_type=ResultType.AS_DICT_LIST_WITH_COLUMNS_KEYS)
+
 
 class OnlineStore:
-    def __init__(self, db_service, auth):
-        self.db_service = db_service
+    def __init__(self, db_service):
+        self._db_service = db_service
+
+    def get_categories(self):
+        return self._db_service.get_categories()
+
+    def get_all_goods(self):
+        return self._db_service.get_all_goods()
+
+    def get_goods_by_id(self, goods_id):
+        return self._db_service.get_goods_by_id(goods_id)
+
+    def get_goods_by_category_id(self, category_id):
+        return self._db_service.get_goods_by_category_id(category_id)
+
+
+# store = OnlineStore(OnlineStoreDBService('goods.db', True))
+# goods = store.get_goods_by_category_id(1)
+# print(goods)
 
 
 class AuthenticationService(object):
@@ -89,9 +127,10 @@ def check_auth(func):
     def wrapper_1(*args, **kwargs):
         if not AuthenticationService.is_authenticated():
             # return render_template('login.html', error_message='User not authenticated')
-            return redirect('login')
+            return redirect('/login')
         return func(*args, **kwargs)
 
+    wrapper_1.__name__ = func.__name__
     return wrapper_1
 
 

@@ -8,35 +8,72 @@
 </head>
 <body>
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-
+    <a class="navbar-brand" href="/">Online Store</a>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="#">Link</a>
-            </li>
-
-
+            {% if categories %}
+                {% for category in categories %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="/category/{{ category.id }}">{{ category.category_name }}</a>
+                    </li>
+                {% endfor %}
+            {% endif %}
         </ul>
-        <div class="text mr-sm-2" >Welcome, {{ session['user'] }}</div>
+        <div class="text mr-sm-2">Welcome, {{ session['user'] }}</div>
         {% if session['role']=='ADMIN' %}
-        <button class="btn btn-outline-primary m-2 my-sm-0" onclick="location.href ='/admin'">Admin page</button>
+            <button class="btn btn-outline-primary m-2 my-sm-0" onclick="location.href ='/admin'">Admin page</button>
         {% endif %}
         <button class="btn btn-outline-primary my-2 my-sm-0" onclick="location.href ='/logout'">Logout</button>
     </div>
 
 </nav>
 <div class="container p-5 " style="margin: 0 auto;width:90%">
-<!-- ERROR MESSAGES SECTION -->
+    <!-- ERROR MESSAGES SECTION -->
     {% with errors = get_flashed_messages(category_filter=["errors"]) %}
-    {% if errors %}
-    {%- for msg in errors %}
-    <div class="alert alert-danger" role="alert">
-        {{ msg }}
-    </div>
-    {% endfor -%}
-    {% endif %}
+        {% if errors %}
+            {%- for msg in errors %}
+                <div class="alert alert-danger" role="alert">
+                    {{ msg }}
+                </div>
+            {% endfor -%}
+        {% endif %}
     {% endwith %}
 
+    <div class="card-columns">
+        {% for item in goods %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">{{ item.article_name }}</h5>
+                    <p class="card-text">{{ item.description }}</p>
+                    <a href="/goods/{{ item.id }}" class="btn btn-outline-primary" style="width: 100%">Details</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if items %}
+
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                {% for key in items[0].keys() %}
+                    <th scope="col">{{ key }}</th>
+                {% endfor %}
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in items %}
+                <tr>
+                    {% for key in item.keys() %}
+                        <td>{{ item[key] }}</td>
+                    {% endfor %}
+                </tr>
+
+            {% endfor %}
+            </tbody>
+        </table>
+        <button class="btn btn-outline-primary" onclick="window.history.back()">Back</button>
+    {% endif %}
 
 
 </div>

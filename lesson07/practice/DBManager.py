@@ -44,9 +44,9 @@ class DBManager:
         if result_type == ResultType.FETCH_ONE:
             return result.fetchone()
         if result_type == ResultType.RESULT_AND_COLUMNS:
-            return result.fetchall(), result.description
+            return result.fetchall(), [col[0] for col in result.description]
         if result_type == ResultType.AS_DICT_LIST_WITH_COLUMNS_KEYS:
-            columns = result.description
+            columns = [col[0] for col in result.description]
             data = result.fetchall()
             return [dict(zip(columns, value)) for value in data]
         else:

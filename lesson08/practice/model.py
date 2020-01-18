@@ -14,7 +14,7 @@ class Role(Enum):
     ADMIN = 2
 
 
-class OnlineStoreDBService:
+class OnlineStore:
     def __init__(self, db_path, autocommit):
         if not os.path.exists(db_path):
             raise Exception('DB not found on this path: ' + db_path)
@@ -39,25 +39,25 @@ class OnlineStoreDBService:
             return db.execute_with_result(Query.sql_get_goods_by_category_id, params=(category_id,),
                                           result_type=ResultType.AS_DICT_LIST_WITH_COLUMNS_KEYS)
 
+    def delete_item_by_id(self, item_id):
+        with self._db_manager as db:
+            return db.execute(Query.sql_delete_item_by_id, params=(item_id,))
 
-class OnlineStore:
-    def __init__(self, db_service):
-        self._db_service = db_service
+    def create_category(self, category_name):
+        with self._db_manager as db:
+            return db.execute(Query.sql_create_category, params=(category_name,))
 
-    def get_categories(self):
-        return self._db_service.get_categories()
+    def delete_category_by_id(self, category_id):
+        with self._db_manager as db:
+            db.execute(Query.sql_delete_goods_by_category_id, params=(category_id,))
+            return db.execute(Query.sql_delete_category_by_id, params=(category_id,))
 
-    def get_all_goods(self):
-        return self._db_service.get_all_goods()
-
-    def get_goods_by_id(self, goods_id):
-        return self._db_service.get_goods_by_id(goods_id)
-
-    def get_goods_by_category_id(self, category_id):
-        return self._db_service.get_goods_by_category_id(category_id)
+    def create_item(self, category_id, article_name, barcode, description, is_present, price, stock):
+        with self._db_manager as db:
+            return db.execute(Query.sql_create_goods_item, params=(category_id, article_name, barcode, description, is_present, price, stock,))
 
 
-# store = OnlineStore(OnlineStoreDBService('goods.db', True))
+# store = OnlineStore('goods.db', True)
 # goods = store.get_goods_by_category_id(1)
 # print(goods)
 
@@ -148,6 +148,7 @@ def only_for_roles(roles):
                 abort(405)
             return func(*args, **kwargs)
 
+        wrapper_2.__name__ = func.__name__
         return wrapper_2
 
     return decorator

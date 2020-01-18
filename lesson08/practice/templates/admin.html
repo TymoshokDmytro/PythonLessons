@@ -1,16 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
-    Googs page
-    <p>{{ error_message }}</p>
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">Online Store</a>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+        </ul>
+        <div class="text mr-sm-2">Welcome, {{ session['user'] }}</div>
+        <button class="btn btn-outline-primary m-2 my-sm-0" onclick="location.href ='/'">Exit</button>
+        <button class="btn btn-outline-primary my-2 my-sm-0" onclick="location.href ='/logout'">Logout</button>
+    </div>
+</nav>
+
+<div class="container p-5 " style="margin: 0 auto;width:90%">
+
+    <!-- ERROR MESSAGES SECTION -->
+    {% with errors = get_flashed_messages(category_filter=["errors"]) %}
+    {% if errors %}
+    {%- for msg in errors %}
+    <div class="alert alert-danger" role="alert">
+        {{ msg }}
+    </div>
+    {% endfor -%}
+    {% endif %}
+    {% endwith %}
+
+    <!-- INFO MESSAGES SECTION -->
+    {% with infos = get_flashed_messages(category_filter=["info"]) %}
+    {% if infos %}
+    {%- for msg in infos %}
+    <div class="alert alert-info" role="alert">
+        {{ msg }}
+    </div>
+    {% endfor -%}
+    {% endif %}
+    {% endwith %}
+
+    {% if items %}
+    <h2>Items</h2>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            {% for key in items[0].keys() %}
+            <th scope="col">{{ key }}</th>
+            {% endfor %}
+            <th scope="col">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in items %}
+        <tr>
+            {% for key in item.keys() %}
+            <td>{{ item[key] }}</td>
+            {% endfor %}
+            <td>
+                <a href="/goods/delete/{{ item['id'] }}" class="btn btn-danger m-2 my-sm-0">Delete</a>
+            </td>
+        </tr>
+
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <form action="/categories/new" method="post">
+        <div class="form-row mb-2">
+            <div class="col">
+                <input type="text" class="form-control" name="category_id" placeholder="category_id">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" name="article_name" placeholder="article_name">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" name="barcode" placeholder="barcode">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" name="description" placeholder="description">
+            </div>
+        </div>
+        <div class="form-row mb-2">
+            <div class="col">
+                <input type="text" class="form-control" name="is_present" placeholder="is_present">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" name="price" placeholder="price">
+            </div>
+            <div class="col">
+                <input type="text" class="form-control" name="stock" placeholder="stock">
+            </div>
+            <div class="col">
+                <input type="submit" class="form-control btn btn-primary" value="Create"/>
+            </div>
+        </div>
+    </form>
+
+    {% if categories %}
+    <h2>Categories</h2>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            {% for key in categories[0].keys() %}
+            <th scope="col">{{ key }}</th>
+            {% endfor %}
+            <th scope="col">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for category in categories %}
+        <tr>
+            {% for key in category.keys() %}
+            <td>{{ category[key] }}</td>
+            {% endfor %}
+            <td>
+                <a href="/categories/delete/{{ category['id'] }}" class="btn btn-danger m-2 my-sm-0">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    <form action="/categories/new" method="post">
+        <div class="form-row">
+            <div class="col">
+                <input type="text" class="form-control" name="category_name" placeholder="Last name">
+            </div>
+            <div class="col">
+                <input type="submit" class="form-control btn btn-primary" value="Create"/>
+            </div>
+        </div>
+    </form>
+
+</div>
 </body>
 
-<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
 </html>

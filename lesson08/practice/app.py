@@ -2,12 +2,11 @@ import os
 
 from flask import Flask, render_template, redirect, request, flash, session
 
-from lesson08.practice.model import AuthenticationService, Role, only_for_role, OnlineStore, \
-    OnlineStoreDBService, check_auth
+from lesson08.practice.model import AuthenticationService, Role, only_for_role, OnlineStore, check_auth
 
 app = Flask(__name__)
 app.secret_key = "1zszATDrlYAIexo6frPN"
-store = OnlineStore(OnlineStoreDBService(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'goods.db'), True))
+store = OnlineStore(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'goods.db'), True)
 
 
 @app.route("/")
@@ -69,7 +68,51 @@ def login():
 @app.route("/admin")
 @only_for_role(Role.ADMIN)
 def admin():
-    return render_template("admin.html")
+    items = store.get_all_goods()
+    categories = store.get_categories()
+    return render_template("admin.html",
+                           items=items,
+                           categories=categories)
+
+
+@app.route('/categories/new', methods=['POST'])
+@only_for_role(Role.ADMIN)
+def create_category():
+    category_name = request.form['category_name']
+
+    store.create_category(category_name)
+
+    flash('Category with name ' + category_name + ' created', 'info')
+    return redirect('/admin')
+
+
+@app.route('/categories/delete/<int:category_id>')
+@only_for_role(Role.ADMIN)
+def create_category(category_id):
+    store.delete_category_by_id(category_id)
+    flash('Category with id ' + category_id + ' was deleted', 'info')
+    return redirect('/admin')
+
+@app.route("/goods/new")
+@only_for_role(Role.ADMIN)
+def goods_create(item_id):
+    category_id = request.form['category_id']
+    article_name= request.form['article_nam']
+    barcode = request.form['barcode']
+    description = request.form['description']
+    is_present = request.form['is_present']
+    price = request.form['price']
+    stock = request.form['stock']
+    store.create_item(category_id, article_name, barcode, description, is_present, price, stock)
+    return redirect('/admin')
+
+
+@app.route("/goods/delete/<int:item_id>")
+@only_for_role(Role.ADMIN)
+def goods_delete(item_id):
+    store.delete_item_by_id(item_id)
+    flash('Item with id ' + item_id + ' was deleted', 'info')
+    return redirect('/admin')
 
 
 if __name__ == '__main__':

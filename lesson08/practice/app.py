@@ -94,6 +94,7 @@ def delete_category(category_id):
     flash('Category with id ' + str(category_id) + ' was deleted', 'info')
     return redirect('/admin')
 
+
 @app.route("/goods/new", methods=['POST'])
 @only_for_role(Role.ADMIN)
 def goods_create():

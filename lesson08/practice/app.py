@@ -1,4 +1,5 @@
 import os
+import traceback
 
 from flask import Flask, render_template, redirect, request, flash, session
 
@@ -88,22 +89,28 @@ def create_category():
 
 @app.route('/categories/delete/<int:category_id>')
 @only_for_role(Role.ADMIN)
-def create_category(category_id):
+def delete_category(category_id):
     store.delete_category_by_id(category_id)
-    flash('Category with id ' + category_id + ' was deleted', 'info')
+    flash('Category with id ' + str(category_id) + ' was deleted', 'info')
     return redirect('/admin')
 
-@app.route("/goods/new")
+@app.route("/goods/new", methods=['POST'])
 @only_for_role(Role.ADMIN)
-def goods_create(item_id):
-    category_id = request.form['category_id']
-    article_name= request.form['article_nam']
-    barcode = request.form['barcode']
-    description = request.form['description']
-    is_present = request.form['is_present']
-    price = request.form['price']
-    stock = request.form['stock']
-    store.create_item(category_id, article_name, barcode, description, is_present, price, stock)
+def goods_create():
+    try:
+        category_id = request.form['category_id']
+        article_name = request.form['article_name']
+        barcode = request.form['barcode']
+        description = request.form['description']
+        is_present = int(request.form['is_present'])
+        price = float(request.form['price'])
+        stock = float(request.form['stock'])
+
+        store.create_item(category_id, article_name, barcode, description, is_present, price, stock)
+        flash('Item with name ' + article_name + ' was created', 'info')
+    except Exception:
+        flash(traceback.format_exc(), 'errors')
+        traceback.print_exc()
     return redirect('/admin')
 
 
@@ -111,7 +118,7 @@ def goods_create(item_id):
 @only_for_role(Role.ADMIN)
 def goods_delete(item_id):
     store.delete_item_by_id(item_id)
-    flash('Item with id ' + item_id + ' was deleted', 'info')
+    flash('Item with id ' + str(item_id) + ' was deleted', 'info')
     return redirect('/admin')
 
 

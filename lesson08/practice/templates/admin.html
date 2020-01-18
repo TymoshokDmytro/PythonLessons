@@ -69,30 +69,30 @@
     </table>
     {% endif %}
 
-    <form action="/categories/new" method="post">
+    <form action="/goods/new" method="post">
         <div class="form-row mb-2">
             <div class="col">
-                <input type="text" class="form-control" name="category_id" placeholder="category_id">
+                <input type="text" class="form-control" name="category_id" placeholder="category_id(int)">
             </div>
             <div class="col">
-                <input type="text" class="form-control" name="article_name" placeholder="article_name">
+                <input type="text" class="form-control" name="article_name" placeholder="article_name(str)">
             </div>
             <div class="col">
-                <input type="text" class="form-control" name="barcode" placeholder="barcode">
+                <input type="text" class="form-control" name="barcode" placeholder="barcode(str:13)">
             </div>
             <div class="col">
-                <input type="text" class="form-control" name="description" placeholder="description">
+                <input type="text" class="form-control" name="description" placeholder="description(str)">
             </div>
         </div>
         <div class="form-row mb-2">
             <div class="col">
-                <input type="text" class="form-control" name="is_present" placeholder="is_present">
+                <input type="text" class="form-control" name="is_present" placeholder="is_present(int[1,0])">
             </div>
             <div class="col">
-                <input type="text" class="form-control" name="price" placeholder="price">
+                <input type="text" class="form-control" name="price" placeholder="price(float)">
             </div>
             <div class="col">
-                <input type="text" class="form-control" name="stock" placeholder="stock">
+                <input type="text" class="form-control" name="stock" placeholder="stock(float)">
             </div>
             <div class="col">
                 <input type="submit" class="form-control btn btn-primary" value="Create"/>

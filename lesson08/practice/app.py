@@ -43,7 +43,6 @@ def goods(item_id):
 @app.route("/logout", methods=['GET'])
 def logout():
     AuthenticationService.logout()
-    session.clear()
     return redirect('login')
 
 
@@ -61,8 +60,6 @@ def login():
     if 'error' in resp:
         flash(resp['error'], 'errors')
         return render_template('login.html')
-    session['role'] = AuthenticationService.get_role().name
-    session['user'] = AuthenticationService.get_user()
     return redirect('/')
 
 

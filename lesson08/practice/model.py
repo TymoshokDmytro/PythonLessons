@@ -1,7 +1,7 @@
 import os
 from enum import unique, Enum
 
-from flask import url_for
+from flask import session
 from werkzeug.utils import redirect
 
 from lesson07.practice.DBManager import DBManager, ResultType
@@ -63,9 +63,6 @@ class OnlineStore:
 
 
 class AuthenticationService(object):
-    _user = None
-    _role = None
-
     def __new__(cls):
         if not hasattr(cls, 'instance'):
             cls.instance = super(AuthenticationService, cls).__new__(cls)
@@ -85,11 +82,11 @@ class AuthenticationService(object):
 
     @classmethod
     def get_role(cls):
-        return cls._role
+        return session['role']
 
     @classmethod
     def get_user(cls):
-        return cls._user
+        return session['user']
 
     @classmethod
     def login(cls, login, password):
@@ -101,8 +98,8 @@ class AuthenticationService(object):
         if password and password != user['password']:
             return {'error': 'Incorrect password'}
 
-        cls._user = login
-        cls._role = user['role']
+        session['user'] = login
+        session['role'] = user['role'].name
         return {'status': 'ok'}
 
     @classmethod
@@ -113,14 +110,14 @@ class AuthenticationService(object):
 
     @classmethod
     def is_authenticated(cls):
-        if cls._user is None:
+        if ('user' not in session) or (session['user'] is None):
             return False
         return True
 
     @classmethod
     def logout(cls):
-        cls._user = None
-        cls._role = None
+        session['user'] = None
+        session['role'] = None
 
 
 def check_auth(func):
@@ -143,7 +140,7 @@ def only_for_roles(roles):
         def wrapper_2(*args, **kwargs):
             if not AuthenticationService.is_authenticated():
                 redirect('login')
-            if not AuthenticationService.get_role() in roles:
+            if not AuthenticationService.get_role() in [role.name for role in roles]:
                 from werkzeug.exceptions import abort
                 abort(405)
             return func(*args, **kwargs)

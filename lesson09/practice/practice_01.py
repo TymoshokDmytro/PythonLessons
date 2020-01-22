@@ -17,7 +17,7 @@ class Kurator(Document):
     fullname = StringField(max_length=64, required=True)
 
     def __str__(self):
-        return f'Kurator[fillname={self.fullname}]'
+        return f'Kurator[fullname={self.fullname}]'
 
 
 # ФИО, группа, оценки, куратор, студента, факультет
@@ -26,7 +26,7 @@ class Student(Document):
     group = StringField(max_length=16, required=True)
     department = StringField(max_length=32, required=True)
     marks = ListField(ReferenceField(Mark))
-    kurator = ListField(ReferenceField(Kurator))
+    kurator = ReferenceField(Kurator)
 
     def get_keys(self):
         return json.loads(self.to_json()).keys()
@@ -60,7 +60,7 @@ class StudentMongoGenerator:
                                     group=generate_string(10, 5, (string.ascii_uppercase + string.digits)),
                                     department=generate_string(15, 10),
                                     marks=[random.choice(self._marks_objects) for i in range(marks_size)],
-                                    kurator=[random.choice(self._kurators)]).save())
+                                    kurator=random.choice(self._kurators)).save())
 
         return students
 
@@ -102,7 +102,7 @@ class Department:
                 group=group,
                 department=department,
                 marks=marks,
-                kurator=[kurator]).save()
+                kurator=kurator).save()
 
 
     #TODO from here
@@ -123,6 +123,6 @@ if __name__ == '__main__':
 
     # GET ALL STUDENTS
     students = smg.get_all_students()
-    dep = Department(students)
+    dep = Department()
     print(dep.get_students_size())
     # save students to departament

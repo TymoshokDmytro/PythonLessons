@@ -1,9 +1,8 @@
 import json
-import random
-import string
 
 from mongoengine import *
-from utils.utils import generate_string, generate_random_int
+
+from lesson09.practice.practice_02 import *
 
 
 class Mark(Document):
@@ -35,46 +34,12 @@ class Student(Document):
         return f'Student[fillname={self.fullname}, group={self.group}, department={self.department}, marks={self.marks}, kurator={self.kurator}]'
 
 
-class StudentMongoGenerator:
+def get_random_kurator():
+    return random.choice(Kurator.objects.filter())
 
-    def __new__(cls):
-        if not hasattr(cls, 'instance'):
-            cls.instance = super(StudentMongoGenerator, cls).__new__(cls)
-        return cls.instance
 
-    def __init__(self):
-        if Kurator.objects.count() == 0:
-            for i in range(10):
-                Kurator.objects.create(fullname=generate_string(15, 10))
-        self._kurators = Kurator.objects.filter()
-
-        if Mark.objects.count() == 0:
-            for i in range(1, 6):
-                Mark(value=i).save()
-        self._marks_objects = Mark.objects.filter()
-
-    def generate_students(self, size, marks_size=10):
-        students = []
-        for i in range(size):
-            students.append(Student(fullname=generate_string(20, 10),
-                                    group=generate_string(10, 5, (string.ascii_uppercase + string.digits)),
-                                    department=generate_string(15, 10),
-                                    marks=[random.choice(self._marks_objects) for i in range(marks_size)],
-                                    kurator=random.choice(self._kurators)).save())
-
-        return students
-
-    @staticmethod
-    def drop_students():
-        Student.drop_collection()
-
-    @staticmethod
-    def get_all_students():
-        return Student.objects.filter()
-
-    @staticmethod
-    def get_all_students_count():
-        return Student.objects.count()
+def get_random_marks(size=10):
+    return [random.choice(Mark.objects.filter()) for i in range(size)]
 
 
 class Department:
@@ -89,26 +54,20 @@ class Department:
         return len(Student.objects.filter())
 
     @staticmethod
-    def get_random_marks(size=10):
-        return [random.choice(Mark.objects.filter()) for i in range(size)]
+    def get_student(**kwargs):
+        return Student.objects.filter(**kwargs)
 
     @staticmethod
-    def get_random_kurator():
-        return random.choice(Kurator.objects.filter())
+    def create_student(**kwargs):
+        Student(**kwargs).save()
 
     @staticmethod
-    def create_student(fullname, group, department, marks, kurator):
-        Student(fullname=fullname,
-                group=group,
-                department=department,
-                marks=marks,
-                kurator=kurator).save()
+    def delete_student(**kwargs):
+        Student.delete(**kwargs)
 
-
-    #TODO from here
     @staticmethod
-    def delete_student(self, field_name, value):
-        pass
+    def update_student(**kwargs):
+        Student.update(**kwargs)
 
 
 if __name__ == '__main__':
@@ -124,5 +83,5 @@ if __name__ == '__main__':
     # GET ALL STUDENTS
     students = smg.get_all_students()
     dep = Department()
-    print(dep.get_students_size())
+    print(dep.get_student(kurator=Kurator.objects.first()))
     # save students to departament

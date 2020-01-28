@@ -1,5 +1,3 @@
-import datetime
-
 from mongoengine import *
 
 connect('developers_db')

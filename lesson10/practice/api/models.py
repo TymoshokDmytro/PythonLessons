@@ -1,5 +1,6 @@
 import datetime
 import random
+from pprint import pprint
 
 from mongoengine import *
 import lorem
@@ -14,6 +15,9 @@ class Tag(Document):
     def __str__(self):
         return f'Tag[tag={self.tag}]'
 
+    def get_posts(self):
+        return Post.objects.filter(tags=self)
+
 
 class Author(Document):
     fullname = StringField(max_length=64, required=True)
@@ -21,6 +25,9 @@ class Author(Document):
 
     def __str__(self):
         return f'Author[fullname={self.fullname}, posts_count={self.posts_count}]'
+
+    def get_posts(self):
+        return Post.objects.filter(author=self)
 
 
 class Post(Document):

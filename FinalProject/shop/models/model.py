@@ -82,3 +82,56 @@ class Texts(Document):
     )
     text_type = StringField(choices=TEXT_TYPES)
     body = StringField(max_length=2048)
+
+category_dict={
+    'Toys': [],
+    'Equipment': [],
+    'Office Tools': [],
+    'Computers': [],
+    'Large House electronics': [],
+    'Small house electronics': [],
+    'Phones': [],
+    'Plumbing': [],
+    'Television': [],
+    'Tires': []
+}
+
+class ShopDataGenerator:
+
+    @staticmethod
+    def generate_data(user_num=5, category_num=10):
+        from faker import Faker
+        from faker.providers import person, internet
+        fake = Faker()
+        fake.add_provider(person)
+        fake.add_provider(internet)
+
+        Category.drop_collection()
+        User.drop_collection()
+        Cart.drop_collection()
+        Product.drop_collection()
+
+        for i in range(user_num):
+            User.objects.create(telegram_id=fake.numerify(text='#########'),
+                                username=fake.last_name(),
+                                fullname=fake.name(),
+                                phone=fake.numerify(text='+3809########'),
+                                email=fake.ascii_email())
+
+        for i in range(category_num):
+            # title = StringField(min_length=1, max_length=255, required=True)
+            # description = StringField(max_length=4096)
+            # subcategories = ListField(ReferenceField('self'))
+            # parent = ReferenceField('self')
+            # is_root = BooleanField(default=False)
+            Category.objects.create(
+                title=fake.random_choices(elements=('a', 'b', 'c'))
+                description =
+                subcategories =
+                parent =
+                is_root =
+            )
+
+if __name__ == '__main__':
+    ShopDataGenerator.generate_data()
+    pass

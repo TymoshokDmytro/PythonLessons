@@ -13,6 +13,5 @@ bot = TeleBot(token=TOKEN)
 def start(message):
     txt = Texts.objects.filter(text_type='Greetings').get()
 
-
     bot.send_message(message.chat.id, txt, reply_markup=ReplyKeyboardMarkup().add(
         *[KeyboardButton(button_name) for button_name in START_KB.values()]))

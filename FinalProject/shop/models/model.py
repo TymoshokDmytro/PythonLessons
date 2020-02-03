@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from mongoengine import *
 
 connect('shop_db')
@@ -10,10 +12,16 @@ class Attributes(EmbeddedDocument):
 
 
 class User(Document):
+    choises = (
+        ('products', 'products'),
+        ('categories', 'categories')
+    )
+
     telegram_id = StringField(max_length=32, required=True)
     username = StringField(max_length=128)
     fullname = StringField(max_length=256)
     phone = StringField(max_length=20)
+    state = StringField(choices=choises)
     email = EmailField()
 
 
@@ -23,6 +31,12 @@ class Cart(Document):
 
     def get_cart(self):
         return CartProduct.objects.filter(cart=self)
+
+    def add_product_to_cart(self, product):
+        CartProduct.objects.create(cart=self, product=product)
+
+    def delete_product_from_cart(self, product):
+        CartProduct.objects.filter(cart=self, product=product).first().delete()
 
     # TODO Overthink
     # def get_sum(self):
@@ -43,21 +57,25 @@ class Category(Document):
 
     @classmethod
     def create(cls, **kwargs):
-        if kwargs['parent']:
+        kwargs['subcategories'] = []
+        if 'parent' in kwargs.keys() and kwargs['parent']:
             kwargs['is_root'] = False
-        Product(**kwargs).save()
+        return cls(**kwargs).save()
 
     def add_subcategory(self, cat_obj):
         cat_obj.parent = self
         cat_obj.save()
         self.subcategories.append(cat_obj)
-        self.subcategories.save()
+        self.save()
 
     def is_parent(self):
         return bool(self.parent)
 
     def get_products(self):
         return Product.objects.filter(category=self)
+
+    def __str__(self):
+        return self.title
 
 
 class Product(Document):
@@ -83,7 +101,8 @@ class Texts(Document):
     text_type = StringField(choices=TEXT_TYPES)
     body = StringField(max_length=2048)
 
-category_dict={
+
+category_dict = {
     'Toys': [],
     'Equipment': [],
     'Office Tools': [],
@@ -95,6 +114,7 @@ category_dict={
     'Television': [],
     'Tires': []
 }
+
 
 class ShopDataGenerator:
 
@@ -118,20 +138,78 @@ class ShopDataGenerator:
                                 phone=fake.numerify(text='+3809########'),
                                 email=fake.ascii_email())
 
+        root_category_dict = {
+            'title': 'category_root',
+            'description': 'category_root description',
+            'is_root': True
+        }
+
+        root_cat = Category.create(**root_category_dict)
         for i in range(category_num):
-            # title = StringField(min_length=1, max_length=255, required=True)
-            # description = StringField(max_length=4096)
-            # subcategories = ListField(ReferenceField('self'))
-            # parent = ReferenceField('self')
-            # is_root = BooleanField(default=False)
-            Category.objects.create(
-                title=fake.random_choices(elements=('a', 'b', 'c'))
-                description =
-                subcategories =
-                parent =
-                is_root =
-            )
+            category_dict = {
+                'title': f'category{i}',
+                'description': f'category{i} description'
+            }
+            sub_cat = Category(**category_dict)
+            root_cat.add_subcategory(sub_cat)
+
 
 if __name__ == '__main__':
-    ShopDataGenerator.generate_data()
-    pass
+    # ShopDataGenerator.generate_data()
+
+    # Category.drop_collection()
+    # category_dict = {
+    #     'title': 'category_root',
+    #     'description': 'category_root description',
+    #     'is_root': True
+    # }
+    #
+    # root_cat = Category.create(**category_dict)
+    # for i in range(5):
+    #     category_dict = {
+    #         'title': f'category{i}',
+    #         'description': f'category{i} description'
+    #     }
+    #     sub_cat = Category(**category_dict)
+    #     root_cat.add_subcategory(sub_cat)
+
+    # root = Category.objects(is_root=True)
+    #
+    # for cat in root:
+    #     print(cat)
+    #
+    #     if cat.subcategories:
+    #         for sub in cat.subcategories:
+    #             print(f'Parent is {sub.parent}')
+    #             print(f'Sub cat is {sub}')
+    #             print()
+
+    # User.drop_collection()
+    # Cart.drop_collection()
+    # CartProduct.drop_collection()
+    # Product.drop_collection()
+    # user = User.objects.create(telegram_id='123456')
+    # cart = Cart.objects.create(user=user)
+    # USE insert with list of Objects
+
+    # cart = Cart.objects.first()
+
+
+    # products = []
+    # for i in range(10):
+    #     product = {
+    #         'title': f'product{i}',
+    #         'article': f'arcticle{i}',
+    #         'category': Category.objects.first(),
+    #         'price': 10 * (i+1)
+    #     }
+    #     created_product = Product.objects.create(**product)
+    #     cart.add_product_to_cart(created_product)
+    #
+    # pprint(cart.get)
+    # Product.objects.insert(products)
+
+    cart = Cart.objects.first()
+    frequencies = cart.get_cart().item_frequencies('product')
+    print(frequencies)
+

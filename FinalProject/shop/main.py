@@ -1,10 +1,10 @@
 from telebot import TeleBot
 
-from FinalProject.shop.bot.keyboards import START_KB, MAIN_KB
+from FinalProject.shop.keyboards import START_KB
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
-from FinalProject.shop.models.model import Category, Product, Texts
+from FinalProject.shop.models.model import Category
 
-from FinalProject.shop.bot.config import TOKEN
+from FinalProject.shop.config import TOKEN
 
 bot = TeleBot(token=TOKEN)
 

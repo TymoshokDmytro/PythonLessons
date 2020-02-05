@@ -3,7 +3,7 @@ from pprint import pprint
 
 from mongoengine import *
 
-connect('bot_consulting_db', alias='bot_consulting_db')
+db = connect('bot_consulting_db', alias='default')
 
 
 @unique
@@ -28,6 +28,7 @@ class User(Document):
     fullname = StringField(max_length=256)
     phone = StringField(max_length=20)
     email = EmailField()
+    address = StringField(max_length=256)
     state = StringField(choices=state_choices, default=states[0])
 
 
@@ -39,4 +40,4 @@ class Complient(Document):
 
 if __name__ == '__main__':
     pass
-    User.drop_collection()
+    # User.drop_collection()

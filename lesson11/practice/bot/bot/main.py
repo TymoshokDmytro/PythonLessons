@@ -13,6 +13,18 @@ phone_regex = '^\(?[\d]{3}\)?[\s-]?[\d]{3}[\s-]?[\d]{4}$'
 email_regex = """(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])"""
 
 
+def register_decorator(func):
+    def wrapper(*args, **kwargs):
+        user = check_user_registered(args[0])
+        if user.state != STATE.REGISTERED.value:
+            bot.send_message(args[0].chat.id, 'You are not registered. Type /register')
+            return
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
 def check_registration(user, chat_id):
     resp_text = ''
     if user.state == STATE.REGISTERED.value:
@@ -72,16 +84,38 @@ def start(message):
 
 
 @bot.message_handler(commands=['show'])
+@register_decorator
 def start(message):
-    bot.send_message(message.chat.id, 'Hello ' + message.chat.username)
     user = check_user_registered(message)
-    if user.state != STATE.REGISTERED.value:
-        bot.send_message(message.chat.id, 'You are not registered. Type /register')
-        return
 
     complaints = Complient.objects(user=user)
+    if not complaints:
+        bot.send_message(message.chat.id, 'No complaints yet')
+        return
 
-    pprint(list(complaints))
+    for i, complaint in enumerate(complaints):
+        bot.send_message(message.chat.id, 'Complaint # ' + str(i + 1) + '\n'
+                         + str(complaint.id) + '\n'
+                         + complaint.creation_date.strftime("%y-%m-%d %H:%M:%S") + '\n'
+                         + complaint.description)
+
+
+@bot.message_handler(commands=['delete'])
+@register_decorator
+def delete(message):
+    user = check_user_registered(message)
+    num = Complient.objects(user=user).delete()
+    bot.send_message(message.chat.id, f'Deleted documets = {num}')
+
+
+@bot.message_handler(commands=['unregister'])
+@register_decorator
+def unregister(message):
+    user = check_user_registered(message)
+    delete(message)
+    User.objects(id=user.id).delete()
+    bot.send_message(message.chat.id, 'Unregistered')
+
 
 @bot.message_handler(content_types=['text'])
 def text(message):

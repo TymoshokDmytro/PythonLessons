@@ -33,7 +33,7 @@ class User(Document):
 
 
 class Complient(Document):
-    creation_date = DateField()
+    creation_date = DateTimeField()
     description = StringField(max_length=4096)
     user = ReferenceField(User)
 

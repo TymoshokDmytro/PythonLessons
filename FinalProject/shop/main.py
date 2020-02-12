@@ -1,7 +1,7 @@
+from flask import Flask, request, abort
 from telebot import TeleBot
 
-
-from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton, Update
 
 from keyboards import START_KB
 from models.model import Category
@@ -9,6 +9,24 @@ from models.model import Category
 from config import TOKEN
 
 bot = TeleBot(token=TOKEN)
+
+app = Flask(__name__)
+
+
+@app.route('/', methods=['POST'])
+def webhook():
+    """
+    Function process webhook call
+    """
+    if request.headers.get('content-type') == 'application/json':
+
+        json_string = request.get_data().decode('utf-8')
+        update = Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ''
+
+    else:
+        abort(403)
 
 
 @bot.message_handler(commands=['start'])

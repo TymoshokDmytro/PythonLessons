@@ -65,4 +65,9 @@ def get_cat_or_products(call):
     # bot.send_message(call.message.chat.id, category.title, reply_markup=kb)
 
 
+@bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'product')
+def add_to_cart(call):
+    product = call.data.split('_')[1]
+
+
 bot.polling()

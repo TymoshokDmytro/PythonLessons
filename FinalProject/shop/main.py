@@ -6,14 +6,14 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 from keyboards import START_KB
 from models.model import Category
 
-from config import TOKEN
+from config import TOKEN, PATH, WEBHOOK_URL
 
 bot = TeleBot(token=TOKEN)
 
 app = Flask(__name__)
 
 
-@app.route('/', methods=['POST'])
+@app.route(f'/{PATH}', methods=['POST'])
 def webhook():
     """
     Function process webhook call
@@ -90,4 +90,13 @@ def add_to_cart(call):
     product = call.data.split('_')[1]
 
 
-bot.polling()
+if __name__ == '__main__':
+    import time
+
+    print('Started TELEGRAM BOT SHOP WEB SERVER')
+    bot.remove_webhook()
+    time.sleep(1)
+    bot.set_webhook(
+        url=WEBHOOK_URL,
+        certificate=open('nginx-selfsigned.crt', 'r')
+    )

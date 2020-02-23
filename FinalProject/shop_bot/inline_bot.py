@@ -1,8 +1,8 @@
 from telebot import TeleBot, types
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, InlineQueryResultArticle
 
-from FinalProject.shop.config import TOKEN
-from FinalProject.shop.keyboards import START_KB
+from FinalProject.shop_bot.config import TOKEN
+from FinalProject.shop_bot.keyboards import START_KB
 
 bot = TeleBot(TOKEN)
 

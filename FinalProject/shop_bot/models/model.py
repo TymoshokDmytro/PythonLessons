@@ -38,11 +38,6 @@ class Cart(Document):
     def delete_product_from_cart(self, product):
         CartProduct.objects.filter(cart=self, product=product).first().delete()
 
-    # TODO Overthink
-    # def get_sum(self):
-    #     pass
-
-
 class CartProduct(Document):
     cart = ReferenceField(Cart)
     product = ReferenceField('Product')

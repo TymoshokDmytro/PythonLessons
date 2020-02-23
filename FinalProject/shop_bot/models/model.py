@@ -38,6 +38,7 @@ class Cart(Document):
     def delete_product_from_cart(self, product):
         CartProduct.objects.filter(cart=self, product=product).first().delete()
 
+
 class CartProduct(Document):
     cart = ReferenceField(Cart)
     product = ReferenceField('Product')
@@ -133,78 +134,162 @@ class ShopDataGenerator:
                                 phone=fake.numerify(text='+3809########'),
                                 email=fake.ascii_email())
 
+
+categories_json = {
+    'Phones': {
+        'Stationary': {
+            'Panasonic': {},
+            'VTech': {}
+        },
+        'Mobile': {
+            'Samsung': {},
+            'Xiaomi': {},
+            'Nokia': {}
+        }
+    },
+    'Cpu': {
+        'Intel': {},
+        'AMD': {}
+    }
+}
+
+categories_description_dict = {
+    'Phones': 'Category of Phones',
+    'Stationary': 'Stationary DECT phones',
+    'Panasonic': 'Category of Panasonic stationary phones',
+    'VTech': 'Category of VTech stationary phones',
+    'Mobile': 'Mobile phones',
+    'Samsung': 'Samsung phones',
+    'Xiaomi': 'Xiaomi phones',
+    'Nokia': 'Nokia phones',
+    'Cpu': "Category of cpu's",
+    'Intel': "Category of Intel cpu's",
+    'AMD': "Category of AMD cpu's"
+}
+
+panasonic_cat_id = str(Category.objects(title='Panasonic').get().id)
+
+products_dict = {
+    'Panasonic_1': {
+        'title': 'Panasonic KX-TGE43B',
+        'category': panasonic_cat_id,
+        'article': 'KX-TGE43B',
+        'description': 'Expandable Cordless Phone System with Answering Machine ',
+        'price': 6995,
+        'in_stock': 1,
+        'discount_price': 0
+    },
+    'Panasonic_2': {
+        'title': 'Panasonic KX-TGE434B',
+        'category': panasonic_cat_id,
+        'article': 'KX-TGE434B',
+        'description': 'Expandable Cordless Phone System with Answering Machine - 4 Handsets - KX-TGE434B',
+        'price': 10995,
+        'in_stock': 1,
+        'discount_price': 0
+    },
+    'Panasonic_3': {
+        'title': 'Panasonic KX-TGE484S2',
+        'category': panasonic_cat_id,
+        'article': 'KX-TGE484S2',
+        'description': 'Link2Cell Bluetooth® Cordless Phone with Rugged Phone - 4 Handsets - KX-TGE484S2',
+        'price': 15995,
+        'in_stock': 1,
+        'discount_price': 0
+    },
+    'Panasonic_4': {
+        'title': 'Panasonic KX-TGC364B',
+        'category': panasonic_cat_id,
+        'article': 'KX-TGC364B',
+        'description': 'Expandable Cordless Phone with Answering System - 4 Handsets - KX-TGC364B',
+        'price': 8995,
+        'in_stock': 1,
+        'discount_price': 0
+    },
+    'Panasonic_5': {
+        'title': 'Panasonic KX-TGD583M2',
+        'category': panasonic_cat_id,
+        'article': 'KX-TGD583M2',
+        'description': 'Link2Cell Bluetooth® Cordless Phone with Voice Assist and Answering Machine Standard Handset + Rugged Phone Series - KX-TGD58M2',
+        'price': 11995,
+        'in_stock': 1,
+        'discount_price': 0
+    },
+    'Panasonic_6': {
+        'title': 'Panasonic KX-TGD563M',
+        'category': panasonic_cat_id,
+        'article': 'KX-TGD563M',
+        'description': 'Link2Cell Bluetooth® Cordless Phone with Voice Assist and Answering Machine - KX-TGD56M Series',
+        'price': 10995,
+        'in_stock': 1,
+        'discount_price': 0
+    },
+    'Panasonic_7': {
+        'title': 'Panasonic KX-TGD562G',
+        'category': panasonic_cat_id,
+        'article': 'KX-TGD562G',
+        'description': 'Link2Cell Bluetooth Cordless Phone with Answering Machine - KX-TGD56 Series',
+        'price': 8995,
+        'in_stock': 1,
+        'discount_price': 0
+    },
+    'Panasonic_8': {
+        'title': 'Panasonic KX-TGD510B',
+        'category': panasonic_cat_id,
+        'article': 'KX-TGD510B',
+        'description': 'Expandable Cordless Phone with Call Block - KX-TGD51 Series',
+        'price': 6995,
+        'in_stock': 1,
+        'discount_price': 0
+    },
+    'Panasonic_9': {
+        'title': 'Panasonic KX-TGE474S',
+        'category': panasonic_cat_id,
+        'article': 'KX-TGE474S',
+        'description': 'Link2Cell Bluetooth® Cordless Phone with Large Keypad- KX-TGE47 Series',
+        'price': 14995,
+        'in_stock': 1,
+        'discount_price': 0
+    },
+    'Panasonic_10': {
+        'title': 'Panasonic KX-TGM450S',
+        'category': panasonic_cat_id,
+        'article': 'KX-TGM450S',
+        'description': 'Amplified Cordless Phone with Digital Answering Machine - 1 Handset - KX-TGM450S',
+        'price': 15995,
+        'in_stock': 1,
+        'discount_price': 0
+    }
+
+}
+
+
+def recursive_categories_creation(cat_json, previous_cat=None, level=0):
+    for key, value in cat_json.items():
+
         root_category_dict = {
-            'title': 'category_root',
-            'description': 'category_root description',
-            'is_root': True
+            'title': key,
+            'description': categories_description_dict[key],
+            'is_root': True if level == 0 else False
         }
 
-        root_cat = Category.create(**root_category_dict)
-        for i in range(category_num):
-            category_dict = {
-                'title': f'category{i}',
-                'description': f'category{i} description'
-            }
-            sub_cat = Category(**category_dict)
-            root_cat.add_subcategory(sub_cat)
+        category = Category.create(**root_category_dict)
+        if previous_cat:
+            previous_cat.add_subcategory(category)
 
+        if value:
+            recursive_categories_creation(cat_json[key], category, level=level + 1)
+
+
+# cart = Cart.objects.first()
+# frequencies = cart.get_cart().item_frequencies('product')
+# print(frequencies)
 
 if __name__ == '__main__':
+    pass
     # ShopDataGenerator.generate_data()
 
     # Category.drop_collection()
-    # category_dict = {
-    #     'title': 'category_root',
-    #     'description': 'category_root description',
-    #     'is_root': True
-    # }
-    #
-    # root_cat = Category.create(**category_dict)
-    # for i in range(5):
-    #     category_dict = {
-    #         'title': f'category{i}',
-    #         'description': f'category{i} description'
-    #     }
-    #     sub_cat = Category(**category_dict)
-    #     root_cat.add_subcategory(sub_cat)
+    # recursive_categories_creation(categories_json)
 
-    # root = Category.objects(is_root=True)
-    #
-    # for cat in root:
-    #     print(cat)
-    #
-    #     if cat.subcategories:
-    #         for sub in cat.subcategories:
-    #             print(f'Parent is {sub.parent}')
-    #             print(f'Sub cat is {sub}')
-    #             print()
-
-    # User.drop_collection()
-    # Cart.drop_collection()
-    # CartProduct.drop_collection()
-    # Product.drop_collection()
-    # user = User.objects.create(telegram_id='123456')
-    # cart = Cart.objects.create(user=user)
-    # USE insert with list of Objects
-
-    # cart = Cart.objects.first()
-
-
-    # products = []
-    # for i in range(10):
-    #     product = {
-    #         'title': f'product{i}',
-    #         'article': f'arcticle{i}',
-    #         'category': Category.objects.first(),
-    #         'price': 10 * (i+1)
-    #     }
-    #     created_product = Product.objects.create(**product)
-    #     cart.add_product_to_cart(created_product)
-    #
-    # pprint(cart.get)
-    # Product.objects.insert(products)
-
-    cart = Cart.objects.first()
-    frequencies = cart.get_cart().item_frequencies('product')
-    print(frequencies)
-
+    pprint(products_dict)

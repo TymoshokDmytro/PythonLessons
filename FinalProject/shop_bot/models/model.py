@@ -9,32 +9,49 @@ class Attributes(EmbeddedDocument):
     width = FloatField()
 
 
-class User(Document):
-    choises = (
-        ('products', 'products'),
-        ('categories', 'categories')
-    )
-
-    telegram_id = StringField(max_length=32, required=True)
-    username = StringField(max_length=128)
-    fullname = StringField(max_length=256)
-    phone = StringField(max_length=20)
-    state = StringField(choices=choises)
-    email = EmailField()
-
-
 class Cart(Document):
-    user = ReferenceField(User)
+    user = StringField(max_length=32, required=True)
     is_archived = BooleanField(default=False)
+    total = IntField(min_value=0, default=0)
+
+    def get_size(self):
+        return len(self.get_cart())
 
     def get_cart(self):
         return CartProduct.objects.filter(cart=self)
 
     def add_product_to_cart(self, product):
         CartProduct.objects.create(cart=self, product=product)
+        self.total += product.get_price()
+        self.save()
 
     def delete_product_from_cart(self, product):
-        CartProduct.objects.filter(cart=self, product=product).first().delete()
+        cart_prods = CartProduct.objects.filter(cart=self, product=product)
+        if len(cart_prods) != 0:
+            CartProduct.objects.filter(cart=self, product=product).first().delete()
+            self.total -= product.get_price()
+            self.save()
+
+    def remove_product_from_cart(self, product):
+        cart_prods = CartProduct.objects.filter(cart=self, product=product)
+        if len(cart_prods) != 0:
+            self.total -= product.get_price() * self.get_product_qty(product)
+            self.save()
+            CartProduct.objects.filter(cart=self, product=product).delete()
+
+    def get_product_qty(self, product):
+        return len(CartProduct.objects(cart=self, product=product))
+
+    def remove_all_from_cart(self):
+        CartProduct.objects(cart=self).delete()
+        self.total = 0
+        self.save()
+
+    def get_total(self):
+        return self.total
+
+    def get_total_str(self):
+        return str(round(self.total / 100, 2)) + ' UAH'
 
 
 class CartProduct(Document):
@@ -86,12 +103,12 @@ class Product(Document):
     def get_price(self):
         return self.price if not self.discount_price else self.discount_price
 
+    def get_price_str(self):
+        return str(round((self.get_price() / 100), 2)) + ' UAH'
 
-class Texts(Document):
-    TEXT_TYPES = (
-        ('Greetings', 'Greetings'),
-        ('News', 'News')
-    )
-    text_type = StringField(choices=TEXT_TYPES)
-    body = StringField(max_length=2048)
+    def get_total_str(self, qty):
+        return str(round(((self.get_price() * qty) / 100), 2)) + ' UAH'
 
+# if __name__ == '__main__':
+#     Cart.drop_collection()
+#     CartProduct.drop_collection()

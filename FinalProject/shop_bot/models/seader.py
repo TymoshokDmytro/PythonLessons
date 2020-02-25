@@ -1,4 +1,4 @@
-from models.model import Category, User, Cart, Product
+from models.model import Category, Cart, Product, CartProduct
 
 categories_json = {
     'Phones': {
@@ -147,7 +147,7 @@ products_dict = {
         'category': 'Samsung',
         'article': 'samsung_galaxy_m30s_4_64gb_black',
         'description': 'Экран (6.4", Super AMOLED, 2340х1080) / Samsung Exynos 9611 (4 x 2.3 ГГц + 4 x 1.7 ГГц) / тройная основная камера: 48 Мп + 8 Мп + 5 Мп, фронтальная 16 Мп / RAM 4 ГБ / 64 ГБ встроенной памяти + microSD (до 512 ГБ) / 3G / LTE / GPS / ГЛОНАСС / BDS / Galileo / поддержка 2х SIM-карт (Nano-SIM) / Android 9.0 (Pie) / 6000 мА*ч',
-        'price': 5999,
+        'price': 599900,
         'in_stock': 1,
     },
     'Samsung_2': {
@@ -155,7 +155,7 @@ products_dict = {
         'category': 'Samsung',
         'article': 'samsung_galaxy_s9_64gb_black',
         'description': 'Экран (5.8", Super AMOLED, 2960х1440)/ Samsung Exynos 9810 (4 x 2.7 ГГц + 4 x 1.7 ГГц)/ основная камера 12 Мп + фронтальная 8 Мп/ RAM 4 ГБ/ 64 ГБ встроенной памяти + microSD (до 400 ГБ)/ 3G/ LTE/ GPS/ поддержка 2х SIM-карт (Nano-SIM)/ Android 8.0 (Oreo) / 3000 мА*ч',
-        'price': 10999,
+        'price': 1099900,
         'in_stock': 1,
     },
     'Samsung_3': {
@@ -163,7 +163,7 @@ products_dict = {
         'category': 'Samsung',
         'article': 'copy_samsung_sm_a515fzwusek',
         'description': 'Экран (5.8", Super AMOLED, 2960х1440)/ Samsung Exynos 9810 (4 x 2.7 ГГц + 4 x 1.7 ГГц)/ основная камера 12 Мп + фронтальная 8 Мп/ RAM 4 ГБ/ 64 ГБ встроенной памяти + microSD (до 400 ГБ)/ 3G/ LTE/ GPS/ поддержка 2х SIM-карт (Nano-SIM)/ Android 8.0 (Oreo) / 3000 мА*ч',
-        'price': 9499,
+        'price': 949900,
         'in_stock': 1,
     },
     'Xiaomi_1': {
@@ -171,7 +171,7 @@ products_dict = {
         'category': 'Xiaomi',
         'article': 'xiaomi_redmi_7a_2_16gb_matte_black',
         'description': 'Экран (5.45'', IPS, 1440x720)/ Qualcomm Snapdragon 439 (4 x 1.95 ГГц + 4 х 1.45 ГГц)/ основная камера: 13 Мп, фронтальная камера: 5 Мп/ RAM 2 ГБ/ 16 ГБ встроенной памяти + microSD (до 256 ГБ)/ 3G/ LTE/ GPS/ ГЛОНАСС/ поддержка 2х SIM-карт (Nano-SIM)/ Android 9.0 (Pie)/ 4000 мА*ч',
-        'price': 2199,
+        'price': 219900,
         'in_stock': 1,
     },
     'Xiaomi_2': {
@@ -179,7 +179,7 @@ products_dict = {
         'category': 'Xiaomi',
         'article': 'copy_xiaomi_redmi_note_8t_524153',
         'description': 'Экран (6.3", IPS, 2340x1080)/ Qualcomm Snapdragon 665 (2.0 ГГц)/ квадро основная камера: 48 Мп + 8 Мп + 2 Мп + 2 Мп, фронтальная камера: 13 Мп/ RAM 4 ГБ/ 64 ГБ встроенной памяти + microSD (до 256 ГБ)/ 3G/ LTE/ GPS/ поддержка 2х SIM-карт (Nano-SIM)/ Android 9.0 (Pie) / 4000 мА*ч',
-        'price': 4999,
+        'price': 499900,
         'in_stock': 1,
     },
     'Xiaomi_3': {
@@ -187,7 +187,7 @@ products_dict = {
         'category': 'Xiaomi',
         'article': 'xiaomi_redmi_note_8_pro_6_64gb_blue',
         'description': 'Экран (6.53", IPS, 2340x1080)/ MediaTek Helio G90T (2 x 2.05 ГГц + 6 x 2.0 ГГц)/ квадро основная камера: 64 Мп + 8 Мп + 2 Мп + 2 Мп, фронтальная камера: 20 Мп/ RAM 6 ГБ/ 64 ГБ встроенной памяти + microSD (до 256 ГБ)/ 3G/ LTE/ GPS/ поддержка 2х SIM-карт (Nano-SIM)/ Android 9.0 (Pie) / 4500 мА*ч',
-        'price': 5999,
+        'price': 599900,
         'in_stock': 1,
     },
     'Intel_1': {
@@ -195,7 +195,7 @@ products_dict = {
         'category': 'Intel',
         'article': 'intel_core_i5_9400f',
         'description': 'Процессор Intel Core i5-9400F 2.9GHz/8GT/s/9MB (BX80684I59400F) s1151 BOX',
-        'price': 4550,
+        'price': 455000,
         'in_stock': 1,
     },
     'Intel_2': {
@@ -203,7 +203,7 @@ products_dict = {
         'category': 'Intel',
         'article': 'intel_core_i3_8100',
         'description': 'Процессор Intel Core i3-8100 3.6GHz/8GT/s/6MB (BX80684I38100) s1151 BOX',
-        'price': 3555,
+        'price': 355500,
         'in_stock': 1,
     },
     'Intel_3': {
@@ -211,7 +211,7 @@ products_dict = {
         'category': 'Intel',
         'article': 'intel_core_i9_9900k',
         'description': 'Процессор Intel Core i9-9900K 3.6GHz/8GT/s/16MB (BX80684I99900K) s1151 BOX',
-        'price': 15720,
+        'price': 1572000,
         'in_stock': 1,
     },
     'AMD_1': {
@@ -219,7 +219,7 @@ products_dict = {
         'category': 'AMD',
         'article': 'amd_ryzen_5_3600',
         'description': 'Процессор AMD Ryzen 5 3600 3.6GHz/32MB (100-100000031BOX) sAM4 BOX',
-        'price': 5430,
+        'price': 543000,
         'in_stock': 1,
     },
     'AMD_2': {
@@ -227,7 +227,7 @@ products_dict = {
         'category': 'AMD',
         'article': 'amd_ryzen_5_1600_wraith_stealth',
         'description': 'Процессор AMD Ryzen 5 1600 3.2GHz/16MB (YD1600BBAFBOX) sAM4 BOX',
-        'price': 2900,
+        'price': 290000,
         'in_stock': 1,
     },
     'AMD_3': {
@@ -235,7 +235,7 @@ products_dict = {
         'category': 'AMD',
         'article': 'amd_ryzen_threadripper_2990wx',
         'description': 'Процессор AMD Ryzen Threadripper 2990WX 3.0GHz/64MB (YD299XAZAFWOF) sTR4 BOX',
-        'price': 49000,
+        'price': 4900000,
         'in_stock': 1,
     },
 }
@@ -252,16 +252,9 @@ class ShopDataGenerator:
         fake.add_provider(internet)
 
         Category.drop_collection()
-        User.drop_collection()
         Cart.drop_collection()
+        CartProduct.drop_collection()
         Product.drop_collection()
-
-        for i in range(user_num):
-            User.objects.create(telegram_id=fake.numerify(text='#########'),
-                                username=fake.last_name(),
-                                fullname=fake.name(),
-                                phone=fake.numerify(text='+3809########'),
-                                email=fake.ascii_email())
 
         recursive_categories_creation(categories_json)
 
@@ -295,14 +288,4 @@ def recursive_categories_creation(cat_json, previous_cat=None, level=0):
 # print(frequencies)
 
 if __name__ == '__main__':
-    pass
-    # ShopDataGenerator.generate_data()
-
-    Product.drop_collection()
-
-    cat_id_dict = {}
-    [cat_id_dict.update({cat_name: get_cat_id(cat_name)}) for cat_name in categories_description_dict]
-
-    for product in products_dict.values():
-        product['category'] = cat_id_dict[product['category']]
-        Product.objects.create(**product)
+    ShopDataGenerator.generate_data()

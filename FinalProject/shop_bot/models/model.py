@@ -91,6 +91,7 @@ class Category(Document):
 
 class Product(Document):
     title = StringField(min_length=1, max_length=255, required=True)
+    img_url = StringField(max_length=1024)
     category = ReferenceField(Category, required=True)
     article = StringField(max_length=64, required=True)
     description = StringField(max_length=4096)
@@ -103,8 +104,17 @@ class Product(Document):
     def get_price(self):
         return self.price if not self.discount_price else self.discount_price
 
+    @staticmethod
+    def get_price_str_repr(price):
+        return str(round((price / 100), 2))
+
     def get_price_str(self):
-        return str(round((self.get_price() / 100), 2)) + ' UAH'
+        return self.get_price_str_repr(self.get_price()) + ' UAH'
+
+    def get_price_markdown_str(self):
+        if self.discount_price:
+            return f"<s>{self.get_price_str_repr(self.price)}</s> <b>{self.get_price_str_repr(self.discount_price)}</b> UAH"
+        return self.get_price_str()
 
     def get_total_str(self, qty):
         return str(round(((self.get_price() * qty) / 100), 2)) + ' UAH'

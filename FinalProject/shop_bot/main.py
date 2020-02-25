@@ -215,12 +215,12 @@ def show_categories(data, message):
         for product in category.get_products():
             kb_pr = InlineKeyboardMarkup()
             kb_pr.add(InlineKeyboardButton(text='В корзину', callback_data='product_' + str(product.id)))
-            caption = 'TITLE:' + product.title + '\nDESC: ' + product.description + '\nPRICE: ' + str(
-                product.get_price_str())
-            bot.send_photo(message.chat.id,
-                           photo=open(f'img/{product.article}.jpg', 'rb'),
-                           reply_markup=kb_pr,
-                           caption=caption)
+            caption = 'TITLE:' + product.title + '\nDESC: ' + product.description + '\nPRICE: ' + product.get_price_markdown_str()
+            bot.send_message(message.chat.id,
+                             # caption + ('<a href="' + product.img_url + '">&#8205;</a>' if product.img_url else ''),
+                             caption + ("<a href='" + product.img_url + "'>&#8205</a>" if product.img_url else ''),
+                             parse_mode='HTML',
+                             reply_markup=kb_pr)
         bot.delete_message(message.chat.id, message.message_id)
         bot.send_message(message.chat.id, category.title + title_text, reply_markup=kb)
         return

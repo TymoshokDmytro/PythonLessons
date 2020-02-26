@@ -1,7 +1,8 @@
 import json
 import time
 
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, \
+    InputTextMessageContent, InlineQueryResultArticle
 
 from keyboards import START_KB
 from models.model import Category, Product, Cart
@@ -16,6 +17,7 @@ class BotService:
         cats = Category.objects(is_root=True)
         kb = InlineKeyboardMarkup()
         buttons = [InlineKeyboardButton(text=cat.title, callback_data=str(cat.id)) for cat in cats]
+        buttons.append(InlineKeyboardButton(text="Поиск товаров по названию", switch_inline_query_current_chat=''))
         kb.add(*buttons)
         if message.from_user.is_bot:
             return self._bot.edit_message_text('Выберите категорию',
@@ -32,8 +34,14 @@ class BotService:
         buttons = []
 
         if category.subcategories:
-            buttons = [InlineKeyboardButton(text=cat.title, callback_data=str(cat.id)) for cat in
-                       category.subcategories]
+            buttons = []
+            for cat in category.subcategories:
+                if cat.subcategories:
+                    buttons.append(InlineKeyboardButton(text=cat.title, callback_data=str(cat.id)))
+                    continue
+                buttons.append(
+                    InlineKeyboardButton(text=cat.title,
+                                         switch_inline_query_current_chat='category_' + str(cat.title)))
 
         if not category.is_root:
             buttons.append(InlineKeyboardButton(text='<<< Назад', callback_data=str(category.parent.id)))
@@ -42,7 +50,7 @@ class BotService:
 
         if not category.subcategories:
             title_text = ' | Товары:'
-            self.show_products(category.get_products(), message.chat.id)
+            self.show_products_inline(category.get_products(), message.chat.id)
             self._bot.delete_message(message.chat.id, message.message_id)
             self._bot.send_message(message.chat.id, category.title + title_text, reply_markup=kb)
             return
@@ -71,6 +79,30 @@ class BotService:
                                    parse_mode='HTML',
                                    # disable_web_page_preview=True,
                                    reply_markup=kb_pr)
+
+    def show_products_inline(self, products, query_id):
+        results = []
+        for i, product in enumerate(products):
+            kb = InlineKeyboardMarkup()
+            button = InlineKeyboardButton(text='В корзину', callback_data='product_' + str(product.id))
+            kb.add(button)
+
+            temp_res = InlineQueryResultArticle(
+                id=i + 1,
+                title=product.title,
+                description=product.description + product.get_price_str(),
+                input_message_content=InputTextMessageContent(
+                    parse_mode='HTML',
+                    disable_web_page_preview=False,
+                    message_text=self.get_product_desc_for_message(product)
+                ),
+                thumb_url=product.img_url if product.img_url else '',
+                reply_markup=kb
+
+            )
+            results.append(temp_res)
+        if results:
+            self._bot.answer_inline_query(query_id, results, cache_time=0)
 
     def cart_actions(self, call):
         action = call.data.split('_')[1]
@@ -178,7 +210,9 @@ class BotService:
             user_cart = user_cart.first()
 
         user_cart.add_product_to_cart(product)
-        self._bot.send_message(user_id, f'Product {product.title} added to cart')
+        self._bot.answer_callback_query(call.id, show_alert=True,
+                                        text=f":white_check_mark:Product {product.title} added to cart)")
+        self._bot.send_message(user_id, )
 
     def show_total(self, call):
         user_id = str(call.message.chat.id)
@@ -210,4 +244,4 @@ class BotService:
             return self._bot.send_message(message.chat.id, 'No discount products found')
         promo_products = []
         [promo_products.append(promo_product) for promo_product in promo_products_query]
-        self.show_products(promo_products, message.chat.id)
+        self.show_products_inline(promo_products, message.chat.id)

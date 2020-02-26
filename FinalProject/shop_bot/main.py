@@ -8,7 +8,7 @@ from telebot.types import Update, InlineKeyboardMarkup, InlineKeyboardButton, In
 
 from config import TOKEN, PATH
 from keyboards import START_KB
-from models.model import Product
+from models.model import Product, Category
 from models.seader import ShopDataGenerator
 from service.bot_service import BotService
 
@@ -34,6 +34,13 @@ def webhook():
         abort(403)
 
 
+@bot.inline_handler(func=lambda query: query.query.split('_')[0] == 'category')
+def inline_show_articles(query):
+    category_title = query.query.split('_')[1]
+    products = [product for product in Product.objects(category=Category.objects(title=category_title).get())]
+    bs.show_products_inline(products, query.id)
+
+
 @bot.inline_handler(func=lambda query: True)
 def inline(query):
     data = query.query
@@ -43,33 +50,8 @@ def inline(query):
     query_set = Product.objects(title__contains=data)
     if query_set.count() == 0:
         return
-    results = []
-    for i, product in enumerate(product for product in query_set):
-        kb = InlineKeyboardMarkup()
-        button = InlineKeyboardButton(text='В корзину', callback_data='product_' + str(product.id))
-        kb.add(button)
-
-        temp_res = InlineQueryResultArticle(
-            id=i + 1,
-            title=product.title,
-            description=product.description,
-            # input_message_content=InputTextMessageContent(message_text='Текст после нажатия на инайн кнопку',                                                                ),
-            # input_message_content=types.InputMediaPhoto(
-            #     media='https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTn8DQPz__lgLXqLR__jYIqOqt-4g4AC56kcc2hrbSUva4Ucnvo',
-            #     caption='Описание'
-            # ),
-            input_message_content=InputTextMessageContent(
-                parse_mode='HTML',
-                disable_web_page_preview=False,
-                message_text=bs.get_product_desc_for_message(product)
-            ),
-            thumb_url=product.img_url if product.img_url else '',
-            reply_markup=kb
-
-        )
-        results.append(temp_res)
-
-    bot.answer_inline_query(query.id, results, cache_time=0)
+    products = [product for product in query_set]
+    bs.show_products_inline(products, query.id)
 
 
 @bot.message_handler(commands=['start'])

@@ -272,12 +272,6 @@ class ShopDataGenerator:
 
     @staticmethod
     def generate_data(user_num=5, category_num=10):
-        from faker import Faker
-        from faker.providers import person, internet
-        fake = Faker()
-        fake.add_provider(person)
-        fake.add_provider(internet)
-
         Category.drop_collection()
         Cart.drop_collection()
         CartProduct.drop_collection()

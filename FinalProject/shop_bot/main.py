@@ -36,7 +36,8 @@ def webhook():
 
 @bot.inline_handler(func=lambda query: query.query.split('_')[0] == 'category')
 def inline_show_articles(query):
-    bs.show_articles_by_category_title(query)
+    categoty_title = query.query.split('_')[1]
+    bs.show_articles_by_category_title(categoty_title, query.id)
 
 
 @bot.inline_handler(func=lambda query: True)

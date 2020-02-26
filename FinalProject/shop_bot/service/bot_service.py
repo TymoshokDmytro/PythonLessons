@@ -5,7 +5,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
     InputTextMessageContent, InlineQueryResultArticle
 
 from keyboards import START_KB
-from models.model import Category, Product, Cart
+from models.model import Category, Product, Cart, CartProduct
 
 
 class BotService:
@@ -115,7 +115,7 @@ class BotService:
 
         if action == 'drop':
             cart.remove_all_from_cart()
-            return self._bot.send_message(user_id, 'All products removed from cart')
+            return self._bot.answer_callback_query(call.id, text=f"✔ All products removed from cart")
 
         product_id = str(call.data.split('_')[2])
         product = Product.objects(id=product_id).get()
@@ -130,17 +130,8 @@ class BotService:
 
         if action == 'increase':
             if product.in_stock == int(rp_t):
-                self._bot.edit_message_text(text=call.message.text + f"\n<b>MAX STOCK ITEMS REACHED</b>",
-                                            parse_mode='HTML',
-                                            chat_id=user_id,
-                                            message_id=call.message.message_id,
-                                            reply_markup=json.dumps(reply_markup))
-                time.sleep(2)
-                self._bot.edit_message_text(text=call.message.text,
-                                            chat_id=user_id,
-                                            message_id=call.message.message_id,
-                                            reply_markup=json.dumps(reply_markup))
-                return
+                return self._bot.answer_callback_query(call.id, show_alert=True,
+                                                       text=f"MAX STOCK ITEMS REACHED for {product.title}")
             cart.add_product_to_cart(product)
             rp_t = str(int(rp_t) + 1)
 
@@ -196,29 +187,36 @@ class BotService:
 
         self._bot.send_message(user_id, 'Order:', reply_markup=kb)
 
+    def check_cart_limit_reached(self, user_cart, product):
+        count = CartProduct.objects(cart=user_cart, product=str(product.id)).count()
+        if count == product.in_stock:
+            return True
+        return False
+
     def add_to_cart(self, call):
         user_id = str(call.from_user.id)
         product = Product.objects.get(id=call.data.split('_')[1])
         # if stock = 0 we cannot add this prod to cart
         if product.in_stock == 0:
-            return self._bot.send_message(user_id, f'Cannot add product {product.title} because it is out of stock')
-
+            return self._bot.answer_callback_query(call.id, text=f"❌ Product is out of stock")
         user_cart = Cart.objects(user=user_id)
         if not user_cart:
             user_cart = Cart.objects.create(user=user_id)
         else:
             user_cart = user_cart.first()
 
+        if self.check_cart_limit_reached(user_cart, product):
+            self._bot.answer_callback_query(call.id, show_alert=True,
+                                            text=f"MAX STOCK ITEMS REACHED for {product.title}")
+            return
         user_cart.add_product_to_cart(product)
-        self._bot.answer_callback_query(call.id, show_alert=True,
-                                        text=f":white_check_mark:Product {product.title} added to cart)")
-        self._bot.send_message(user_id, )
+        self._bot.answer_callback_query(call.id, text=f"✔ Added to cart)")
 
     def show_total(self, call):
         user_id = str(call.message.chat.id)
         user_cart = Cart.objects(user=user_id)
         if not user_cart:
-            self._bot.send_message(call.message.chat.id, 'No products in cart yet')
+            self._bot.answer_callback_query(call.id, text=f"✔ Added to cart)")
         else:
             user_cart = user_cart.first()
 
@@ -260,4 +258,3 @@ class BotService:
             return
         products = [product for product in query_set]
         self.show_products_inline(products, query.id)
-

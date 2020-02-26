@@ -119,6 +119,6 @@ class Product(Document):
     def get_total_str(self, qty):
         return str(round(((self.get_price() * qty) / 100), 2)) + ' UAH'
 
-# if __name__ == '__main__':
-#     Cart.drop_collection()
-#     CartProduct.drop_collection()
+
+if __name__ == '__main__':
+    pass

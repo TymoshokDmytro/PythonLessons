@@ -252,7 +252,7 @@ products_dict = {
         'article': 'amd_ryzen_5_1600_wraith_stealth',
         'description': 'Процессор AMD Ryzen 5 1600 3.2GHz/16MB (YD1600BBAFBOX) sAM4 BOX',
         'price': 290000,
-        'discount_price': 2500000,
+        'discount_price': 250000,
         'in_stock': 0,
     },
     'AMD_3': {

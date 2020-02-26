@@ -153,11 +153,10 @@ class BotService:
 
     def show_cart(self, message):
         user_id = str(message.chat.id)
-        user_cart = Cart.objects(user=user_id)
-        if not user_cart or user_cart.first().get_size() == 0:
+        user_cart = self.get_cart_by_user_id(user_id)
+        if not user_cart or user_cart.get_size() == 0:
             return self._bot.send_message(user_id, 'No articles yet in cart')
 
-        user_cart = user_cart.first()
         frequencies = user_cart.get_cart().item_frequencies('product')
 
         products_dict = {cart_product.product.id: cart_product for cart_product in user_cart.get_cart()}
@@ -179,7 +178,7 @@ class BotService:
             self._bot.send_message(user_id, cart_prod_text, reply_markup=kb)
 
         kb = InlineKeyboardMarkup()
-        kb.add(InlineKeyboardButton(text='TOTAL', callback_data='total'))
+        kb.add(InlineKeyboardButton(text=f'TOTAL: {user_cart.get_total_str()}', callback_data='total'))
         kb.add(
             InlineKeyboardButton(text='ORDER ' + u'\U00002714', callback_data='order'),
             InlineKeyboardButton(text='REMOVE ALL  ' + u'\U0000274C', callback_data='cart_drop'),
@@ -199,11 +198,7 @@ class BotService:
         # if stock = 0 we cannot add this prod to cart
         if product.in_stock == 0:
             return self._bot.answer_callback_query(call.id, text=f"❌ Product is out of stock")
-        user_cart = Cart.objects(user=user_id)
-        if not user_cart:
-            user_cart = Cart.objects.create(user=user_id)
-        else:
-            user_cart = user_cart.first()
+        user_cart = self.get_cart_by_user_id(user_id)
 
         if self.check_cart_limit_reached(user_cart, product):
             self._bot.answer_callback_query(call.id, show_alert=True,
@@ -212,13 +207,15 @@ class BotService:
         user_cart.add_product_to_cart(product)
         self._bot.answer_callback_query(call.id, text=f"✔ Added to cart)")
 
+    @staticmethod
+    def get_cart_by_user_id(user_id):
+        query_res = Cart.objects(user=user_id, is_archived=False)
+        return query_res.first() if query_res else Cart.objects.create(user=user_id)
+
     def show_total(self, call):
-        user_id = str(call.message.chat.id)
-        user_cart = Cart.objects(user=user_id)
+        user_cart = self.get_cart_by_user_id(call.from_user.id)
         if not user_cart:
-            self._bot.answer_callback_query(call.id, text=f"✔ Added to cart)")
-        else:
-            user_cart = user_cart.first()
+            return
 
         reply_markup = call.message.json['reply_markup']
         text = reply_markup['inline_keyboard'][0][0]['text']
@@ -242,7 +239,7 @@ class BotService:
             return self._bot.send_message(message.chat.id, 'No discount products found')
         promo_products = []
         [promo_products.append(promo_product) for promo_product in promo_products_query]
-        self.show_products_inline(promo_products, message.chat.id)
+        self.show_products(promo_products, message.chat.id)
 
     def show_articles_by_category_title(self, category_title, query_id):
         products = [product for product in Product.objects(category=Category.objects(title=category_title).get())]

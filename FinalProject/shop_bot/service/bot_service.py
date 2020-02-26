@@ -245,3 +245,19 @@ class BotService:
         promo_products = []
         [promo_products.append(promo_product) for promo_product in promo_products_query]
         self.show_products_inline(promo_products, message.chat.id)
+
+    def show_articles_by_category_title(self, category_title, query_id):
+        products = [product for product in Product.objects(category=Category.objects(title=category_title).get())]
+        self.show_products_inline(products, query_id)
+
+    def process_inline(self, query):
+        data = query.query
+        if not data:
+            return
+
+        query_set = Product.objects(title__contains=data)
+        if query_set.count() == 0:
+            return
+        products = [product for product in query_set]
+        self.show_products_inline(products, query.id)
+

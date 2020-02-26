@@ -36,22 +36,12 @@ def webhook():
 
 @bot.inline_handler(func=lambda query: query.query.split('_')[0] == 'category')
 def inline_show_articles(query):
-    category_title = query.query.split('_')[1]
-    products = [product for product in Product.objects(category=Category.objects(title=category_title).get())]
-    bs.show_products_inline(products, query.id)
+    bs.show_articles_by_category_title(query)
 
 
 @bot.inline_handler(func=lambda query: True)
 def inline(query):
-    data = query.query
-    if not data:
-        return
-
-    query_set = Product.objects(title__contains=data)
-    if query_set.count() == 0:
-        return
-    products = [product for product in query_set]
-    bs.show_products_inline(products, query.id)
+    bs.process_inline(query)
 
 
 @bot.message_handler(commands=['start'])

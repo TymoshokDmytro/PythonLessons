@@ -100,7 +100,7 @@ class BotService:
             temp_res = InlineQueryResultArticle(
                 id=i + 1,
                 title=product.title,
-                description=product.description + ' ' + product.get_price_str() + ' QTY: ' + product.in_stock,
+                description=product.description + ' ' + product.get_price_str() + ' QTY: ' + str(product.in_stock),
                 input_message_content=InputTextMessageContent(
                     parse_mode='HTML',
                     disable_web_page_preview=False,

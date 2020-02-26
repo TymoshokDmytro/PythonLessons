@@ -1,5 +1,6 @@
 import json
 import time
+from datetime import datetime
 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, \
     InputTextMessageContent, InlineQueryResultArticle
@@ -9,6 +10,14 @@ from models.model import Category, Product, Cart, CartProduct
 
 
 class BotService:
+
+    @staticmethod
+    def convert_queryset2list(query_set):
+        return [item for item in query_set]
+
+    @staticmethod
+    def get_cart_products_obj(cart_products):
+        return [cart_product.product for cart_product in cart_products]
 
     def __init__(self, bot_instanse):
         self._bot = bot_instanse
@@ -157,9 +166,9 @@ class BotService:
         if not user_cart or user_cart.get_size() == 0:
             return self._bot.send_message(user_id, 'No articles yet in cart')
 
-        frequencies = user_cart.get_cart().item_frequencies('product')
+        frequencies = user_cart.get_cart_products().item_frequencies('product')
 
-        products_dict = {cart_product.product.id: cart_product for cart_product in user_cart.get_cart()}
+        products_dict = {cart_product.product.id: cart_product for cart_product in user_cart.get_cart_products()}
         for key, cart_product in products_dict.items():
             qty = frequencies[key]
             cart_prod_text = f'{cart_product.product.title}\n' \
@@ -209,6 +218,8 @@ class BotService:
 
     @staticmethod
     def get_cart_by_user_id(user_id):
+        if type(user_id) == int:
+            user_id = str(user_id)
         query_res = Cart.objects(user=user_id, is_archived=False)
         return query_res.first() if query_res else Cart.objects.create(user=user_id)
 
@@ -255,3 +266,40 @@ class BotService:
             return
         products = [product for product in query_set]
         self.show_products_inline(products, query.id)
+
+    def get_bill_text(self, products_dict, cart_total, archived_date):
+        if not products_dict:
+            return ""
+        prod_count_sum = sum(products_dict.values())
+        bill = f"""
+ORDER TIME: {archived_date.strftime("%Y-%m-%d %H:%M:%S")}
+TOTAL: {cart_total}
+PRODUCTS: {prod_count_sum}
+##########################"""
+        for product, count in products_dict.items():
+            bill += f"""
+TITLE: {product.title}
+QTY: {products_dict[product]}
+PRICE: {product.get_price_str()}
+TOTAL: {product.get_total_str(products_dict[product])}
+        --------------------------"""
+        return bill
+
+    def order(self, call):
+        user_id = str(call.message.chat.id)
+        cart = self.get_cart_by_user_id(user_id)
+        if not cart:
+            return
+
+        # GET ALL CART PRODUCTS
+        products_dict = cart.get_cart_products_freq_dict()
+        archived_date = datetime.now()
+        bill = self.get_bill_text(products_dict, cart.get_total_str(), archived_date)
+        if not bill:
+            return self._bot.answer_callback_query(call.id, show_alert=True, text=f"No products in cart")
+
+        self._bot.send_message(user_id, text=bill)
+        # ARCHIVE THE CART
+        cart.is_archived = True
+        cart.archive_date = archived_date
+        cart.save()

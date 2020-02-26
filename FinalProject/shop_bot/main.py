@@ -75,6 +75,11 @@ def cart_actions(call):
     bs.cart_actions(call)
 
 
+@bot.callback_query_handler(func=lambda call: call.data == 'order')
+def order(call):
+    bs.order(call)
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def get_cat_or_products(call):
     if call.data == START_KB['categories']:

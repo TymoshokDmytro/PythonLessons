@@ -13,12 +13,19 @@ class Cart(Document):
     user = StringField(max_length=32, required=True)
     is_archived = BooleanField(default=False)
     total = IntField(min_value=0, default=0)
+    archive_date = DateTimeField(required=False)
 
     def get_size(self):
-        return len(self.get_cart())
+        return self.get_cart_products().count()
 
-    def get_cart(self):
+    def get_cart_products(self):
         return CartProduct.objects.filter(cart=self)
+
+    def get_cart_products_freq_dict(self):
+        cart_products = self.get_cart_products()
+        frequencies = cart_products.item_frequencies('product')
+        products_dict = {cart_product.product.id: cart_product.product for cart_product in cart_products}
+        return {products_dict[prod_id]: count for prod_id, count in frequencies.items()}
 
     def add_product_to_cart(self, product):
         CartProduct.objects.create(cart=self, product=product)

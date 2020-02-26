@@ -289,7 +289,7 @@ TITLE: {product.title}
 QTY: {products_dict[product]}
 PRICE: {product.get_price_str()}
 TOTAL: {product.get_total_str(products_dict[product])}
-        --------------------------"""
+--------------------------"""
         return bill
 
     def subtract_qty(self, products_dict):

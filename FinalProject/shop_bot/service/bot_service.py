@@ -1,6 +1,7 @@
 import json
 import time
 from datetime import datetime
+from pprint import pprint
 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, \
     InputTextMessageContent, InlineQueryResultArticle
@@ -70,9 +71,9 @@ class BotService:
                                     reply_markup=kb)
 
     @staticmethod
-    def get_product_desc_for_message(product):
+    def get_product_desc_for_message(product, inline=False):
         return f"""
-<b>TITLE</b>: {product.title} 
+{'<b>TITLE</b>:' + product.title if not inline else ''} 
 <b>DESC</b>: {product.description} 
 <b>PRICE</b>:  {product.get_price_markdown_str()}
 <b>IN_STOCK</b>: {product.in_stock}
@@ -99,11 +100,11 @@ class BotService:
             temp_res = InlineQueryResultArticle(
                 id=i + 1,
                 title=product.title,
-                description=product.description + product.get_price_str(),
+                description=product.description + ' ' + product.get_price_str() + ' QTY: ' + product.in_stock,
                 input_message_content=InputTextMessageContent(
                     parse_mode='HTML',
                     disable_web_page_preview=False,
-                    message_text=self.get_product_desc_for_message(product)
+                    message_text=self.get_product_desc_for_message(product, True)
                 ),
                 thumb_url=product.img_url if product.img_url else '',
                 reply_markup=kb
@@ -220,7 +221,7 @@ class BotService:
                                             text=f"MAX STOCK ITEMS REACHED for {product.title}")
             return
         user_cart.add_product_to_cart(product)
-        self._bot.answer_callback_query(call.id, text=f"✔ Added to cart)")
+        self._bot.answer_callback_query(call.id, text=f"✔ Added to cart: {product.title}")
 
     @staticmethod
     def get_cart_by_user_id(user_id):
@@ -291,6 +292,11 @@ TOTAL: {product.get_total_str(products_dict[product])}
         --------------------------"""
         return bill
 
+    def subtract_qty(self, products_dict):
+        for product, qty in products_dict.items():
+            product.in_stock -= qty
+            product.save()
+
     def order(self, call):
         user_id = str(call.message.chat.id)
         cart = self.get_cart_by_user_id(user_id)
@@ -301,6 +307,7 @@ TOTAL: {product.get_total_str(products_dict[product])}
         products_dict = cart.get_cart_products_freq_dict()
         archived_date = datetime.now()
         bill = self.get_bill_text(products_dict, cart.get_total_str(), archived_date)
+        self.subtract_qty(products_dict)
         if not bill:
             return self._bot.answer_callback_query(call.id, show_alert=True, text=f"No products in cart")
 
@@ -309,3 +316,19 @@ TOTAL: {product.get_total_str(products_dict[product])}
         cart.is_archived = True
         cart.archive_date = archived_date
         cart.save()
+
+    def show_archive(self, message):
+        user_id = str(message.chat.id)
+        # get carts with is_archived = True
+        query = Cart.objects(user=user_id, is_archived=True)
+        if not query:
+            return self._bot.send_message(user_id, "No archived carts found")
+
+        carts = [cart for cart in query]
+        pprint(carts)
+
+
+        # Show inline buttons with order dates
+        # and callback to the archive_cart_[id]
+
+        # Make callback_query_handler for showing bill information

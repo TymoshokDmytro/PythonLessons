@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
-from pprint import pprint
 
 from flask import Flask, request, abort
 from telebot import TeleBot
-from telebot.types import Update, InlineKeyboardMarkup, InlineKeyboardButton, InlineQueryResultArticle, \
-    InputTextMessageContent
+from telebot.types import Update
 
 from config import TOKEN, PATH
 from keyboards import START_KB
-from models.model import Product, Category
-from models.seader import ShopDataGenerator
 from service.bot_service import BotService
 
 app = Flask(__name__)
@@ -78,6 +74,11 @@ def cart_actions(call):
 @bot.callback_query_handler(func=lambda call: call.data == 'order')
 def order(call):
     bs.order(call)
+
+
+@bot.message_handler(func=lambda message: message.text == START_KB['archive'])
+def categories(message):
+    bs.show_archive(message)
 
 
 @bot.callback_query_handler(func=lambda call: True)

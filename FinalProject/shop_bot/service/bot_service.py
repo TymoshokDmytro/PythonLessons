@@ -120,7 +120,10 @@ class BotService:
             return
 
         user_id = str(call.message.chat.id)
-        cart = Cart.objects(user=user_id).first()
+        cart = self.get_cart_by_user_id(user_id)
+
+        if cart.is_archived:
+            return self._bot.answer_callback_query(call.id, show_alert=False, text=f"This cart is already archived")
 
         if action == 'drop':
             cart.remove_all_from_cart()
@@ -208,6 +211,9 @@ class BotService:
         if product.in_stock == 0:
             return self._bot.answer_callback_query(call.id, text=f"❌ Product is out of stock")
         user_cart = self.get_cart_by_user_id(user_id)
+
+        if user_cart.is_archived:
+            return self._bot.answer_callback_query(call.id, show_alert=False, text=f"This cart is already archived")
 
         if self.check_cart_limit_reached(user_cart, product):
             self._bot.answer_callback_query(call.id, show_alert=True,

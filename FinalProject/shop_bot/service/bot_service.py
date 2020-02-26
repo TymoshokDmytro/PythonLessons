@@ -141,6 +141,7 @@ class BotService:
         for key, cart_product in products_dict.items():
             qty = frequencies[key]
             cart_prod_text = f'{cart_product.product.title}\n' \
+                             f'Qty: {cart_product.product.in_stock}\n' \
                              f'Price: {cart_product.product.get_price_str()}\n' \
                              f'Total: {cart_product.product.get_total_str(qty)}\n'
 

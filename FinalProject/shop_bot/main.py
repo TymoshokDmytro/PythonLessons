@@ -84,7 +84,7 @@ def categories(message):
 
 @bot.callback_query_handler(func=lambda call: call.data == 'total')
 def show_total(call):
-    show_total(call)
+    bs.show_total(call)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'product')

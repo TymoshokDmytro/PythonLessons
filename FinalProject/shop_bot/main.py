@@ -24,20 +24,20 @@ bot = TeleBot(TOKEN)
 bs = BotService(bot)
 
 
-# @app.route(f'/{PATH}', methods=['POST'])
-# def webhook():
-#     """
-#     Function process webhook call
-#     """
-#     if request.headers.get('content-type') == 'application/json':
-#
-#         json_string = request.get_data().decode('utf-8')
-#         update = Update.de_json(json_string)
-#         bot.process_new_updates([update])
-#         return ''
-#
-#     else:
-#         abort(403)
+@app.route(f'/{PATH}', methods=['POST'])
+def webhook():
+    """
+    Function process webhook call
+    """
+    if request.headers.get('content-type') == 'application/json':
+
+        json_string = request.get_data().decode('utf-8')
+        update = Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ''
+
+    else:
+        abort(403)
 
 
 @bot.inline_handler(func=lambda query: query.query.split('_')[0] == 'category')

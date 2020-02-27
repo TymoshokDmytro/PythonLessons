@@ -1,33 +1,43 @@
 # -*- coding: utf-8 -*-
+import datetime
+import logging
+import os
+import threading
 
 from flask import Flask, request, abort
+from flask_restful import Api
 from telebot import TeleBot
 from telebot.types import Update
 
-from config import TOKEN, PATH
+from api.resources import CategoryResource, ProductResource
+from config import TOKEN, PATH, WEBHOOK_URL
 from keyboards import START_KB
 from service.bot_service import BotService
 
 app = Flask(__name__)
+api = Api(app, prefix='/v1')
+
+api.add_resource(CategoryResource, '/category', '/category/<string:cat_id>')
+api.add_resource(ProductResource, '/product', '/product/<string:product_id>')
 
 bot = TeleBot(TOKEN)
 bs = BotService(bot)
 
 
-@app.route(f'/{PATH}', methods=['POST'])
-def webhook():
-    """
-    Function process webhook call
-    """
-    if request.headers.get('content-type') == 'application/json':
-
-        json_string = request.get_data().decode('utf-8')
-        update = Update.de_json(json_string)
-        bot.process_new_updates([update])
-        return ''
-
-    else:
-        abort(403)
+# @app.route(f'/{PATH}', methods=['POST'])
+# def webhook():
+#     """
+#     Function process webhook call
+#     """
+#     if request.headers.get('content-type') == 'application/json':
+#
+#         json_string = request.get_data().decode('utf-8')
+#         update = Update.de_json(json_string)
+#         bot.process_new_updates([update])
+#         return ''
+#
+#     else:
+#         abort(403)
 
 
 @bot.inline_handler(func=lambda query: query.query.split('_')[0] == 'category')
@@ -81,6 +91,12 @@ def categories(message):
     bs.show_archive(message)
 
 
+@bot.callback_query_handler(func=lambda call: call.data.split('_')[0] == 'archive')
+def show_archive_cart(call):
+    archived_cart_id = call.data.split('_')[1]
+    bs.show_archive_cart(call.message.chat.id, archived_cart_id)
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def get_cat_or_products(call):
     if call.data == START_KB['categories']:
@@ -94,17 +110,21 @@ def show_promo_products(message):
 
 
 if __name__ == '__main__':
+    os.makedirs('logs', exist_ok=True)
+    logging.basicConfig(filename='logs/log_' + datetime.date.today().strftime("%Y_%m_%d") + '.log',
+                        datefmt="%Y_%m_%d %H:%M:%S",
+                        level=logging.DEBUG)
+
     # if need to seed the database, just use:
     # ShopDataGenerator.generate_data()
-    bot.polling()
 
-#     import time
-#
-#     print('Started TELEGRAM BOT SHOP WEB SERVER')
-#     bot.remove_webhook()
-#     time.sleep(1)
-#     bot.set_webhook(
-#         url=WEBHOOK_URL,
-#         certificate=open('nginx-selfsigned.crt', 'r')
-#     )
-#     app.run(host='127.0.0.1', port=5000, debug=True)
+    import time
+
+    print('Started TELEGRAM BOT SHOP WEB SERVER')
+    bot.remove_webhook()
+    time.sleep(3)
+    bot.set_webhook(
+        url=WEBHOOK_URL,
+        certificate=open('nginx-selfsigned.crt', 'r')
+    )
+    app.run(host='127.0.0.1', port=5000)

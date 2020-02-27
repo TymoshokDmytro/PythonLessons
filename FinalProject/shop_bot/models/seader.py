@@ -216,7 +216,7 @@ products_dict = {
         'article': 'intel_core_i5_9400f',
         'description': 'Процессор Intel Core i5-9400F 2.9GHz/8GT/s/9MB (BX80684I59400F) s1151 BOX',
         'price': 455000,
-        'in_stock': 15,
+        'in_stock': 1,
     },
     'Intel_2': {
         'title': 'Intel Core i3-8100 3.6GHz/8GT/s/6MB',
@@ -225,7 +225,7 @@ products_dict = {
         'article': 'intel_core_i3_8100',
         'description': 'Процессор Intel Core i3-8100 3.6GHz/8GT/s/6MB (BX80684I38100) s1151 BOX',
         'price': 355500,
-        'in_stock': 10,
+        'in_stock': 3,
     },
     'Intel_3': {
         'title': 'Intel Core i9-9900K 3.6GHz/8GT/s/16MB',
@@ -234,7 +234,7 @@ products_dict = {
         'article': 'intel_core_i9_9900k',
         'description': 'Процессор Intel Core i9-9900K 3.6GHz/8GT/s/16MB (BX80684I99900K) s1151 BOX',
         'price': 1572000,
-        'in_stock': 100,
+        'in_stock': 3,
     },
     'AMD_1': {
         'title': 'AMD Ryzen 5 3600 3.6GHz/32MB',
@@ -243,7 +243,7 @@ products_dict = {
         'article': 'amd_ryzen_5_3600',
         'description': 'Процессор AMD Ryzen 5 3600 3.6GHz/32MB (100-100000031BOX) sAM4 BOX',
         'price': 543000,
-        'in_stock': 1,
+        'in_stock': 3,
     },
     'AMD_2': {
         'title': 'AMD Ryzen 5 1600 3.2GHz/16MB',
@@ -263,7 +263,7 @@ products_dict = {
         'description': 'Процессор AMD Ryzen Threadripper 2990WX 3.0GHz/64MB (YD299XAZAFWOF) sTR4 BOX',
         'price': 4900000,
         'discount_price': 4500000,
-        'in_stock': 100,
+        'in_stock': 1,
     },
 }
 
@@ -271,7 +271,7 @@ products_dict = {
 class ShopDataGenerator:
 
     @staticmethod
-    def generate_data(user_num=5, category_num=10):
+    def generate_data():
         Category.drop_collection()
         Cart.drop_collection()
         CartProduct.drop_collection()
@@ -303,10 +303,6 @@ def recursive_categories_creation(cat_json, previous_cat=None, level=0):
         if value:
             recursive_categories_creation(cat_json[key], category, level=level + 1)
 
-
-# cart = Cart.objects.first()
-# frequencies = cart.get_cart().item_frequencies('product')
-# print(frequencies)
 
 if __name__ == '__main__':
     ShopDataGenerator.generate_data()

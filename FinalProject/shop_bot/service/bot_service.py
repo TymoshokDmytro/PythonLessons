@@ -11,6 +11,7 @@ from models.model import Category, Product, Cart, CartProduct
 
 
 class BotService:
+    datetime_fmt = "%Y-%m-%d %H:%M:%S"
 
     @staticmethod
     def convert_queryset2list(query_set):
@@ -224,9 +225,13 @@ class BotService:
         self._bot.answer_callback_query(call.id, text=f"✔ Added to cart: {product.title}")
 
     @staticmethod
-    def get_cart_by_user_id(user_id):
+    def get_cart_by_user_id(user_id, archived_id=None):
         if type(user_id) == int:
             user_id = str(user_id)
+        if archived_id:
+            query_res = Cart.objects(user=user_id, id=archived_id, is_archived=True)
+            return query_res.first() if query_res else None
+
         query_res = Cart.objects(user=user_id, is_archived=False)
         return query_res.first() if query_res else Cart.objects.create(user=user_id)
 
@@ -279,7 +284,7 @@ class BotService:
             return ""
         prod_count_sum = sum(products_dict.values())
         bill = f"""
-ORDER TIME: {archived_date.strftime("%Y-%m-%d %H:%M:%S")}
+ORDER TIME: {archived_date.strftime(BotService.datetime_fmt)}
 TOTAL: {cart_total}
 PRODUCTS: {prod_count_sum}
 ##########################"""
@@ -325,10 +330,21 @@ TOTAL: {product.get_total_str(products_dict[product])}
             return self._bot.send_message(user_id, "No archived carts found")
 
         carts = [cart for cart in query]
-        pprint(carts)
+        kb = InlineKeyboardMarkup()
+        for cart in carts:
+            button_text = f'DATE: {cart.archive_date.strftime(BotService.datetime_fmt)} ' \
+                          f'TOTAL: {cart.get_total_str()}'
 
+            kb.add(InlineKeyboardButton(button_text, callback_data='archive_' + str(cart.id)))
+        if not kb.keyboard:
+            return self._bot.send_message(user_id, text='No archived orders yet')
+        self._bot.send_message(user_id, text='Orders history:', reply_markup=kb)
 
-        # Show inline buttons with order dates
-        # and callback to the archive_cart_[id]
-
-        # Make callback_query_handler for showing bill information
+    def show_archive_cart(self, user_id, archived_cart_id):
+        archived_cart = self.get_cart_by_user_id(user_id, archived_id=archived_cart_id)
+        bill = self.get_bill_text(archived_cart.get_cart_products_freq_dict(),
+                           archived_cart.get_total_str(),
+                           archived_cart.archive_date)
+        if bill:
+            return self._bot.send_message(user_id, bill)
+        self._bot.send_message(user_id, 'No archived cart found')

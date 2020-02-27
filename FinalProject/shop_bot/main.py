@@ -15,7 +15,7 @@ from keyboards import START_KB
 from service.bot_service import BotService
 
 app = Flask(__name__)
-api = Api(app, prefix='/v1')
+api = Api(app, prefix='/bot/v1')
 
 api.add_resource(CategoryResource, '/category', '/category/<string:cat_id>')
 api.add_resource(ProductResource, '/product', '/product/<string:product_id>')

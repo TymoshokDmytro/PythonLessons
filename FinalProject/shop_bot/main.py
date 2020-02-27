@@ -14,23 +14,29 @@ from config import TOKEN, PATH, WEBHOOK_URL
 from keyboards import START_KB
 from service.bot_service import BotService
 
+app = Flask(__name__)
+api = Api(app, prefix='/bot/v1')
+
+api.add_resource(CategoryResource, '/category', '/category/<string:cat_id>')
+api.add_resource(ProductResource, '/product', '/product/<string:product_id>')
+
 bot = TeleBot(TOKEN)
 bs = BotService(bot)
 
-# @app.route(f'/{PATH}', methods=['POST'])
-# def webhook():
-#     """
-#     Function process webhook call
-#     """
-#     if request.headers.get('content-type') == 'application/json':
-#
-#         json_string = request.get_data().decode('utf-8')
-#         update = Update.de_json(json_string)
-#         bot.process_new_updates([update])
-#         return ''
-#
-#     else:
-#         abort(403)
+@app.route(f'/{PATH}', methods=['POST'])
+def webhook():
+    """
+    Function process webhook call
+    """
+    if request.headers.get('content-type') == 'application/json':
+
+        json_string = request.get_data().decode('utf-8')
+        update = Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ''
+
+    else:
+        abort(403)
 
 
 @bot.inline_handler(func=lambda query: query.query.split('_')[0] == 'category')
@@ -107,17 +113,17 @@ if __name__ == '__main__':
     logging.basicConfig(filename='logs/log_' + datetime.date.today().strftime("%Y_%m_%d") + '_bot.log',
                         datefmt="%Y_%m_%d %H:%M:%S",
                         level=logging.DEBUG)
-    bot.polling()
+
     # if need to seed the database, just use:
     # ShopDataGenerator.generate_data()
 
-    # import time
-    #
-    # print('Started TELEGRAM BOT SHOP WEB SERVER')
-    # bot.remove_webhook()
-    # time.sleep(3)
-    # bot.set_webhook(
-    #     url=WEBHOOK_URL,
-    #     certificate=open('nginx-selfsigned.crt', 'r')
-    # )
-    # app.run(host='127.0.0.1', port=5000)
+    import time
+
+    print('Started TELEGRAM BOT SHOP WEB SERVER')
+    bot.remove_webhook()
+    time.sleep(3)
+    bot.set_webhook(
+        url=WEBHOOK_URL,
+        certificate=open('nginx-selfsigned.crt', 'r')
+    )
+    app.run(host='127.0.0.1', port=5000)

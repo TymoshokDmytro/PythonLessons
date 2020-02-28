@@ -159,14 +159,14 @@ if __name__ == '__main__':
 
     # if need to seed the database, just use:
     # ShopDataGenerator.generate_data()
-    bot.polling()
-    # import time
-    #
-    # print('Started TELEGRAM BOT SHOP WEB SERVER')
-    # bot.remove_webhook()
-    # time.sleep(3)
-    # bot.set_webhook(
-    #     url=WEBHOOK_URL,
-    #     certificate=open('nginx-selfsigned.crt', 'r')
-    # )
-    # app.run(host='127.0.0.1', port=5000)
+
+    import time
+
+    print('Started TELEGRAM BOT SHOP WEB SERVER')
+    bot.remove_webhook()
+    time.sleep(3)
+    bot.set_webhook(
+        url=WEBHOOK_URL,
+        certificate=open('nginx-selfsigned.crt', 'r')
+    )
+    app.run(host='127.0.0.1', port=5000)

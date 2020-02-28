@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from mongoengine import *
 
 connect('shop_db')
@@ -125,6 +127,29 @@ class Product(Document):
 
     def get_total_str(self, qty):
         return str(round(((self.get_price() * qty) / 100), 2)) + ' UAH'
+
+
+class User(Document):
+    telegram_id = StringField(max_length=32, required=True, unique=True)
+    username = StringField(max_length=128)
+    total = IntField(min_value=0)
+    creation_date = DateTimeField()
+
+    def calc_total(self):
+        query_carts = Cart.objects(user=self.telegram_id, is_archived=True)
+        carts = [cart for cart in query_carts]
+        total = 0
+        for cart in carts:
+            total += cart.total
+        self.total = total
+        self.save()
+
+    def get_total(self):
+        self.calc_total()
+        return self.total
+
+    def get_total_str(self):
+        return str(round((self.get_total() / 100), 2)) + ' UAH'
 
 
 if __name__ == '__main__':

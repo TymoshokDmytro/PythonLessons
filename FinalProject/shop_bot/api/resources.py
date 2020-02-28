@@ -2,8 +2,8 @@ from flask import request
 from flask_restful import Resource
 from mongoengine import DoesNotExist
 
-from api.schema import CategorySchema, ProductSchema
-from models.model import Category, Product
+from api.schema import CategorySchema, ProductSchema, UserSchema
+from models.model import Category, Product, User
 
 
 class CategoryResource(Resource):
@@ -120,11 +120,21 @@ class ProductResource(Resource):
 
 
 class UserResource(Resource):
-    def get(self):
-        pass
-        # total = Product.objects.aggregate([
-        #     {"$match": {"in_stock": {"$ne": 0}}},
-        #     {'$group': {'_id': None, 'total': {'$sum': {'$multiply': ['$price', '$in_stock']}}}}
-        # ]).next()
+    def get(self, user_id=None):
+        """ GET method for showing User information
 
-        # return {'total': total['total']}
+        :return: json with User information
+        """
+        many = not user_id
+        try:
+            query = User.objects.get(id=user_id) if user_id else User.objects()
+        except DoesNotExist:
+            return {'msg': f'User with id {user_id} not exists'}
+
+        if user_id:
+            query.calc_total()
+        else:
+            users = [user for user in query]
+            for user in users:
+                user.calc_total()
+        return UserSchema().dump(query, many=many)

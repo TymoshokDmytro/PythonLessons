@@ -9,7 +9,7 @@ from flask_restful import Api
 from telebot import TeleBot
 from telebot.types import Update
 
-from api.resources import CategoryResource, ProductResource
+from api.resources import CategoryResource, ProductResource, UserResource
 from config import TOKEN, PATH, WEBHOOK_URL
 from keyboards import START_KB
 from service.bot_service import BotService
@@ -19,9 +19,11 @@ api = Api(app, prefix='/bot/v1')
 
 api.add_resource(CategoryResource, '/category', '/category/<string:cat_id>')
 api.add_resource(ProductResource, '/product', '/product/<string:product_id>')
+api.add_resource(UserResource, '/user', '/user/<string:user_id>')
 
 bot = TeleBot(TOKEN)
 bs = BotService(bot)
+
 
 @app.route(f'/{PATH}', methods=['POST'])
 def webhook():
@@ -43,6 +45,11 @@ def webhook():
 def inline_show_articles(query):
     categoty_title = query.query.split('_')[1]
     bs.show_articles_by_category_title(categoty_title, query.id)
+
+
+@bot.inline_handler(func=lambda query: query.query == 'order_history')
+def order_history_inline(query):
+    bs.order_history_inline(query)
 
 
 @bot.inline_handler(func=lambda query: True)
@@ -96,6 +103,11 @@ def show_archive_cart(call):
     bs.show_archive_cart(call.message.chat.id, archived_cart_id)
 
 
+@bot.callback_query_handler(func=lambda call: call.data == 'personal_info')
+def personal_info(call):
+    bs.personal_info(call)
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def get_cat_or_products(call):
     if call.data == START_KB['categories']:
@@ -106,6 +118,11 @@ def get_cat_or_products(call):
 @bot.message_handler(func=lambda message: message.text == START_KB['promo'])
 def show_promo_products(message):
     bs.show_promo_products(message)
+
+
+@bot.message_handler(func=lambda message: message.text == START_KB['personal'])
+def personal(message):
+    bs.personal(message)
 
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeybo
     InputTextMessageContent, InlineQueryResultArticle
 
 from keyboards import START_KB
-from models.model import Category, Product, Cart, CartProduct
+from models.model import Category, Product, Cart, CartProduct, User
 
 
 class BotService:
@@ -225,6 +225,23 @@ class BotService:
         self._bot.answer_callback_query(call.id, text=f"✔ Added to cart: {product.title}")
 
     @staticmethod
+    def check_user(user_id, username=None):
+        if type(user_id) != str:
+            user_id = str(user_id)
+        if not user_id:
+            return
+
+        user = User.objects(telegram_id=user_id).first()
+        if not user:
+            user = User.objects.create(
+                telegram_id=user_id,
+                username=username if username else 'No user name',
+                total=0,
+                creation_date=datetime.now()
+            )
+        return user
+
+    @staticmethod
     def get_cart_by_user_id(user_id, archived_id=None):
         if type(user_id) == int:
             user_id = str(user_id)
@@ -307,7 +324,7 @@ TOTAL: {product.get_total_str(products_dict[product])}
         cart = self.get_cart_by_user_id(user_id)
         if not cart:
             return
-
+        BotService.check_user(user_id, call.from_user.username)
         # GET ALL CART PRODUCTS
         products_dict = cart.get_cart_products_freq_dict()
         archived_date = datetime.now()
@@ -343,8 +360,51 @@ TOTAL: {product.get_total_str(products_dict[product])}
     def show_archive_cart(self, user_id, archived_cart_id):
         archived_cart = self.get_cart_by_user_id(user_id, archived_id=archived_cart_id)
         bill = self.get_bill_text(archived_cart.get_cart_products_freq_dict(),
-                           archived_cart.get_total_str(),
-                           archived_cart.archive_date)
+                                  archived_cart.get_total_str(),
+                                  archived_cart.archive_date)
         if bill:
             return self._bot.send_message(user_id, bill)
         self._bot.send_message(user_id, 'No archived cart found')
+
+    def personal(self, message):
+        kb = InlineKeyboardMarkup()
+        buttons = [InlineKeyboardButton(text="Информация", callback_data='personal_info'),
+                   InlineKeyboardButton(text="Архив заказов(inline)", switch_inline_query_current_chat='order_history')]
+        kb.add(*buttons)
+        self._bot.send_message(message.chat.id, text=f"Welcome to personal cabinet, {message.from_user.username}", reply_markup=kb)
+
+    def personal_info(self, call):
+        user_id = call.message.from_user.id
+        user = self.check_user(user_id, username=call.from_user.username)
+        message_text = f'Username={user.username}' \
+                       f'\nCreation_date={user.creation_date.strftime(self.datetime_fmt)}' \
+                       f'\nTotal={user.get_total_str()}' \
+                       f'\nTelegram_id={user.telegram_id}'
+
+        return self._bot.answer_callback_query(call.id, show_alert=True, text=message_text)
+
+    def order_history_inline(self, query):
+        user_id = str(query.from_user.id)
+        # get carts with is_archived = True
+        cart_query = Cart.objects(user=user_id, is_archived=True)
+        if not cart_query:
+            return self._bot.send_message(user_id, "No archived carts found")
+
+        carts = [cart for cart in cart_query]
+        results = []
+        for i, cart in enumerate(carts):
+            temp_res = InlineQueryResultArticle(
+                id=i + 1,
+                title=f'DATE: {cart.archive_date.strftime(self.datetime_fmt)}',
+                description=f'TOTAL: {cart.get_total_str()}',
+                input_message_content=InputTextMessageContent(
+                    disable_web_page_preview=False,
+                    message_text=self.get_bill_text(cart.get_cart_products_freq_dict(),
+                                  cart.get_total_str(),
+                                  cart.archive_date)
+                ),
+            )
+            results.append(temp_res)
+        if results:
+            self._bot.answer_inline_query(query.id, results, cache_time=0)
+
